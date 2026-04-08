@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GeoLens Pro | Geotagging</title>
+    
+    <!-- FontAwesome for Modern Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap');
+
+        :root {
+            --bg-dark: #090b0f;
+            --card-bg: #151821;
+            --primary: #00e5ff;
+            --primary-glow: rgba(0, 229, 255, 0.4);
+            --text-main: #ffffff;
+            --text-sub: #8b95a5;
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Mobile Portrait Wrapper */
+        .app-container {
+            width: 100%;
+            max-width: 430px; /* iPhone Pro Max width */
+            height: 100vh;
+            max-height: 932px;
+            background-color: var(--bg-dark);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        }
+
+        @media (min-width: 431px) {
+            .app-container {
+                height: 90vh;
+                border-radius: 40px;
+                border: 8px solid #222;
+            }
+        }
+
+        /* Header */
+        header {
+            padding: 25px 20px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: 0.5px;
+        }
+
+        .logo i { color: var(--primary); margin-right: 5px; }
+
+        /* Dashboard Screen */
+        .screen {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            padding: 0 20px;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .screen.active { display: flex; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Live Location Card */
+        .location-card {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 25px;
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .location-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--primary);
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0, 229, 255, 0.1);
+            color: var(--primary);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .status-badge .dot {
+            width: 6px; height: 6px;
+            background: var(--primary);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 var(--primary-glow); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 229, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 229, 255, 0); }
+        }
+
+        .city-title {
+            font-size: 1.6rem;
+            color: #fff;
+            margin-bottom: 5px;
+            line-height: 1.2;
+        }
+
+        .address-sub {
+            color: var(--text-sub);
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            border-top: 1px solid var(--glass-border);
+            padding-top: 15px;
+        }
+
+        .data-item p { font-size: 0.7rem; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px; }
+        .data-item h4 { font-size: 0.9rem; color: #fff; margin-top: 3px; font-weight: 500; }
+
+        /* Action Area */
+        .action-area {
+            margin-top: auto;
+            padding-bottom: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .btn-capture {
+            background: var(--primary);
+            color: #000;
+            border: none;
+            padding: 18px;
+            border-radius: 16px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 25px var(--primary-glow);
+            transition: transform 0.2s;
+        }
+
+        .btn-capture:active { transform: scale(0.96); }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-main);
+            border: 1px solid var(--glass-border);
+            padding: 16px;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Preview Screen */
+        .preview-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+            padding-bottom: 20px;
+        }
+
+        #result-image {
+            max-width: 100%;
+            max-height: 75vh;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            object-fit: contain;
+        }
+
+        .btn-save {
+            position: absolute;
+            bottom: 30px;
+            background: #fff;
+            color: #000;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-weight: 700;
+            border: none;
+            box-shadow: 0 5px 15px rgba(255,255,255,0.2);
+            cursor: pointer;
+        }
+
+        .btn-back {
+            background: transparent;
+            border: none;
+            color: var(--text-sub);
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        /* Hidden elements */
+        input[type="file"] { display: none; }
+        canvas { display: none; }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- Header -->
+        <header>
+            <div class="logo"><i class="fa-solid fa-camera-viewfinder"></i> GeoLens Pro</div>
+            <button class="btn-back" id="back-btn" style="display: none;" onclick="showDashboard()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </header>
+
+        <!-- DASHBOARD SCREEN -->
+        <div id="screen-dashboard" class="screen active">
+            
+            <div class="location-card">
+                <div class="status-badge"><div class="dot"></div> Satellite Connected</div>
+                
+                <h2 class="city-title" id="ui-city">Locating...</h2>
+                <p class="address-sub" id="ui-address">Searching for GPS signal and address data...</p>
+
+                <div class="data-grid">
+                    <div class="data-item">
+                        <p>Latitude</p>
+                        <h4 id="ui-lat">--.------</h4>
+                    </div>
+                    <div class="data-item">
+                        <p>Longitude</p>
+                        <h4 id="ui-lng">--.------</h4>
+                    </div>
+                    <div class="data-item">
+                        <p>Altitude</p>
+                        <h4 id="ui-alt">-- m</h4>
+                    </div>
+                    <div class="data-item">
+                        <p>Accuracy</p>
+                        <h4 id="ui-acc">± -- m</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-area">
+                <!-- Native Camera Capture -->
+                <button class="btn-capture" onclick="document.getElementById('camera-input').click()">
+                    <i class="fa-solid fa-camera"></i> Capture Geotagged Photo
+                </button>
+                <!-- Gallery Upload -->
+                <button class="btn-secondary" onclick="document.getElementById('gallery-input').click()">
+                    <i class="fa-solid fa-image"></i> Stamp Existing Photo
+                </button>
+                
+                <input type="file" id="camera-input" accept="image/*" capture="environment">
+                <input type="file" id="gallery-input" accept="image/*">
+            </div>
+        </div>
+
+        <!-- PREVIEW SCREEN -->
+        <div id="screen-preview" class="screen">
+            <div class="preview-container">
+                <img id="result-image" src="" alt="Geotagged Result">
+                <button class="btn-save" onclick="downloadImage()">
+                    <i class="fa-solid fa-download"></i> Save to Gallery
+                </button>
+            </div>
+        </div>
+
+        <canvas id="canvas"></canvas>
+
+    </div>
+
+    <script>
+        // --- Global Location Data ---
+        let geoData = {
+            lat: 0, lng: 0, alt: 0, acc: 0,
+            city: "Unknown Location",
+            address: "Address unavailable"
+        };
+
+        // --- 1. Geolocation & Reverse Geocoding ---
+        function initLocation() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.watchPosition(
+                    async (position) => {
+                        geoData.lat = position.coords.latitude;
+                        geoData.lng = position.coords.longitude;
+                        geoData.alt = position.coords.altitude || 0;
+                        geoData.acc = position.coords.accuracy;
+
+                        // Update UI
+                        document.getElementById('ui-lat').innerText = geoData.lat.toFixed(6);
+                        document.getElementById('ui-lng').innerText = geoData.lng.toFixed(6);
+                        document.getElementById('ui-alt').innerText = geoData.alt ? `${geoData.alt.toFixed(1)} m` : 'Sea Level';
+                        document.getElementById('ui-acc').innerText = `± ${geoData.acc.toFixed(0)} m`;
+
+                        // Fetch Address (Reverse Geocoding via Nominatim - Free, No API Key)
+                        try {
+                            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${geoData.lat}&lon=${geoData.lng}&zoom=18&addressdetails=1`);
+                            const data = await response.json();
+                            
+                            if (data && data.address) {
+                                const addr = data.address;
+                                geoData.city = addr.city || addr.town || addr.village || addr.suburb || "Local Area";
+                                geoData.address = `${addr.road || ''}, ${addr.state || ''}, ${addr.country || ''}`.replace(/^, /, '');
+                                
+                                document.getElementById('ui-city').innerText = geoData.city;
+                                document.getElementById('ui-address').innerText = geoData.address;
+                            }
+                        } catch (error) {
+                            console.log("Geocoding failed", error);
+                            document.getElementById('ui-city').innerText = "Location Found";
+                            document.getElementById('ui-address').innerText = "Coordinates acquired. Offline mode active.";
+                        }
+                    },
+                    (error) => alert("Please allow GPS access to enable premium geotagging."),
+                    { enableHighAccuracy: true, maximumAge: 0 }
+                );
+            }
+        }
+
+        // --- 2. Image Handling & Canvas Stamping ---
+        const cameraInput = document.getElementById('camera-input');
+        const galleryInput = document.getElementById('gallery-input');
+        
+        cameraInput.addEventListener('change', handleImageUpload);
+        galleryInput.addEventListener('change', handleImageUpload);
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    applyPremiumStamp(img);
+                }
+                img.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+
+        function applyPremiumStamp(img) {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Set canvas size to original image size for high quality
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            // Draw Original Image
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            // Stamp Configuration (Scales based on image resolution)
+            const scale = canvas.width / 1080; // Baseline width
+            const pad = 40 * scale;
+            const stampH = 300 * scale;
+            const stampW = canvas.width - (pad * 2);
+            const stampY = canvas.height - stampH - pad;
+            
+            // 1. Draw Glass Background Card
+            ctx.fillStyle = "rgba(15, 17, 21, 0.75)";
+            ctx.beginPath();
+            ctx.roundRect(pad, stampY, stampW, stampH, 20 * scale);
+            ctx.fill();
+
+            // 2. Neon Accent Line
+            ctx.fillStyle = "#00e5ff";
+            ctx.beginPath();
+            ctx.roundRect(pad, stampY, 12 * scale, stampH, [20*scale, 0, 0, 20*scale]);
+            ctx.fill();
+
+            // 3. Typography & Data Elements
+            ctx.fillStyle = "#ffffff";
+            ctx.textBaseline = "top";
+
+            // Left Side: Map Pin Graphic
+            const pinX = pad + 40 * scale;
+            const pinY = stampY + 40 * scale;
+            drawMapPin(ctx, pinX, pinY, 25 * scale);
+
+            // Right Side: City & Address
+            const textX = pinX + 45 * scale;
+            ctx.font = `bold ${45 * scale}px 'Inter', sans-serif`;
+            ctx.fillText(geoData.city.toUpperCase(), textX, stampY + 35 * scale);
+            
+            ctx.fillStyle = "#8b95a5";
+            ctx.font = `500 ${22 * scale}px 'Inter', sans-serif`;
+            ctx.fillText(geoData.address, textX, stampY + 85 * scale);
+
+            // Divider Line
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+            ctx.lineWidth = 2 * scale;
+            ctx.beginPath();
+            ctx.moveTo(textX, stampY + 125 * scale);
+            ctx.lineTo(pad + stampW - 30 * scale, stampY + 125 * scale);
+            ctx.stroke();
+
+            // Data Grid
+            ctx.fillStyle = "#ffffff";
+            ctx.font = `500 ${24 * scale}px 'Inter', monospace`;
+            
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+            const col1X = textX;
+            const col2X = textX + (stampW / 2) - 40 * scale;
+            const row1Y = stampY + 145 * scale;
+            const row2Y = stampY + 195 * scale;
+
+            // Row 1
+            ctx.fillText(`LAT: ${geoData.lat.toFixed(6)}`, col1X, row1Y);
+            ctx.fillText(`DATE: ${dateStr}`, col2X, row1Y);
+            
+            // Row 2
+            ctx.fillText(`LNG: ${geoData.lng.toFixed(6)}`, col1X, row2Y);
+            ctx.fillText(`TIME: ${timeStr}`, col2X, row2Y);
+
+            // Footer / Branding
+            ctx.fillStyle = "#00e5ff";
+            ctx.font = `bold ${18 * scale}px 'Inter', sans-serif`;
+            ctx.fillText(`ALT: ${geoData.alt.toFixed(1)}m  |  ACC: ±${geoData.acc.toFixed(0)}m`, col1X, stampY + 250 * scale);
+            
+            ctx.fillStyle = "rgba(255,255,255,0.5)";
+            ctx.textAlign = "right";
+            ctx.fillText("CAPTURED ON GEOLENS PRO", pad + stampW - 30 * scale, stampY + 250 * scale);
+
+            // Show Result
+            document.getElementById('result-image').src = canvas.toDataURL('image/jpeg', 0.95);
+            showPreview();
+        }
+
+        // --- Custom Canvas Map Pin Drawer ---
+        function drawMapPin(ctx, x, y, size) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.beginPath();
+            ctx.moveTo(0, size);
+            ctx.bezierCurveTo(size, 0, size, -size, 0, -size);
+            ctx.bezierCurveTo(-size, -size, -size, 0, 0, size);
+            ctx.fillStyle = "#00e5ff";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(0, -size/2.5, size/2.5, 0, Math.PI * 2);
+            ctx.fillStyle = "#151821";
+            ctx.fill();
+            ctx.restore();
+        }
+
+        // --- UI Navigation ---
+        function showPreview() {
+            document.getElementById('screen-dashboard').classList.remove('active');
+            document.getElementById('screen-preview').classList.add('active');
+            document.getElementById('back-btn').style.display = 'block';
+        }
+
+        function showDashboard() {
+            document.getElementById('screen-preview').classList.remove('active');
+            document.getElementById('screen-dashboard').classList.add('active');
+            document.getElementById('back-btn').style.display = 'none';
+            // Reset inputs
+            cameraInput.value = "";
+            galleryInput.value = "";
+        }
+
+        function downloadImage() {
+            const canvas = document.getElementById('canvas');
+            const link = document.createElement('a');
+            link.download = `GeoLens_Pro_${Date.now()}.jpg`;
+            link.href = canvas.toDataURL('image/jpeg', 1.0);
+            link.click();
+        }
+
+        // Initialize App
+        window.onload = () => {
+            initLocation();
+        };
+    </script>
+</body>
+</html>
