@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GeoLens Pro | Map Stamp Camera</title>
+    <title>GeoLens Pro | Map Options</title>
     
     <!-- Modern Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -16,6 +16,7 @@
             --card-bg: #151821;
             --primary: #00e5ff;
             --primary-glow: rgba(0, 229, 255, 0.4);
+            --pin-color: #ff2a5f; /* Bright Red for better visibility */
             --text-main: #ffffff;
             --text-sub: #8b95a5;
         }
@@ -52,7 +53,6 @@
             }
         }
 
-        /* Header */
         header {
             padding: 25px 20px 15px;
             display: flex;
@@ -64,7 +64,6 @@
         .logo { font-size: 1.2rem; font-weight: 700; }
         .logo i { color: var(--primary); margin-right: 5px; }
 
-        /* Dashboard */
         .screen {
             flex: 1;
             display: none;
@@ -100,8 +99,6 @@
             padding: 6px 12px;
             border-radius: 20px;
         }
-        .status i { animation: blink 1.5s infinite; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
         .city { font-size: 1.6rem; font-weight: 700; margin-bottom: 5px; }
         .address { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 20px; line-height: 1.4; }
@@ -109,6 +106,36 @@
         .coords { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .coord-box p { font-size: 0.7rem; color: var(--text-sub); text-transform: uppercase; }
         .coord-box h4 { font-size: 0.95rem; margin-top: 3px; }
+
+        /* Map Style Selector */
+        .map-selector {
+            margin-top: 20px;
+        }
+        .map-selector p { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 10px; font-weight: 600; }
+        .map-options {
+            display: flex;
+            gap: 10px;
+            background: rgba(255,255,255,0.05);
+            padding: 5px;
+            border-radius: 12px;
+        }
+        .map-btn {
+            flex: 1;
+            background: transparent;
+            color: var(--text-sub);
+            border: none;
+            padding: 12px 0;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .map-btn.active {
+            background: var(--card-bg);
+            color: var(--primary);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
 
         /* Action Buttons */
         .actions { margin-top: auto; padding-bottom: 20px; display: flex; flex-direction: column; gap: 12px; }
@@ -120,7 +147,6 @@
         }
         .btn-primary { background: var(--primary); color: #000; box-shadow: 0 8px 25px var(--primary-glow); }
         .btn-primary:active { transform: scale(0.96); }
-        
         .btn-secondary { background: var(--card-bg); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
 
         /* Preview Screen */
@@ -132,7 +158,7 @@
         
         #loading-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 100; display: none; 
+            background: rgba(0,0,0,0.85); z-index: 100; display: none; 
             flex-direction: column; justify-content: center; align-items: center;
         }
         .spinner { width: 40px; height: 40px; border: 4px solid var(--text-sub); border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
@@ -144,7 +170,7 @@
 
     <div class="app-container">
         <header>
-            <div class="logo"><i class="fa-solid fa-crosshairs"></i> GeoLens Map-Pro</div>
+            <div class="logo"><i class="fa-solid fa-crosshairs"></i> GeoLens Pro</div>
             <button id="btn-back" class="btn-secondary" style="display:none; padding: 8px 15px; border-radius: 20px;" onclick="showHome()">
                 <i class="fa-solid fa-arrow-left"></i> Back
             </button>
@@ -153,7 +179,7 @@
         <!-- DASHBOARD -->
         <div id="screen-home" class="screen active">
             <div class="location-card">
-                <div class="status"><i class="fa-solid fa-satellite-dish"></i> Live GPS Active</div>
+                <div class="status"><i class="fa-solid fa-satellite-dish"></i> GPS Active</div>
                 <h2 class="city" id="city-text">Locating...</h2>
                 <p class="address" id="address-text">Fetching exact location data...</p>
 
@@ -165,9 +191,25 @@
                 </div>
             </div>
 
+            <!-- MAP SELECTION OPTIONS -->
+            <div class="map-selector">
+                <p>Stamp Map Style:</p>
+                <div class="map-options">
+                    <button class="map-btn active" data-map="satellite" onclick="selectMap(this)">
+                        <i class="fa-solid fa-earth-americas"></i> Satellite
+                    </button>
+                    <button class="map-btn" data-map="light" onclick="selectMap(this)">
+                        <i class="fa-solid fa-map"></i> Standard
+                    </button>
+                    <button class="map-btn" data-map="dark" onclick="selectMap(this)">
+                        <i class="fa-solid fa-moon"></i> Dark
+                    </button>
+                </div>
+            </div>
+
             <div class="actions">
                 <button class="btn btn-primary" onclick="document.getElementById('camera-input').click()">
-                    <i class="fa-solid fa-camera"></i> Capture & Add Map Stamp
+                    <i class="fa-solid fa-camera"></i> Capture & Map Stamp
                 </button>
                 <button class="btn btn-secondary" onclick="document.getElementById('gallery-input').click()">
                     <i class="fa-solid fa-image"></i> Stamp Existing Photo
@@ -190,14 +232,22 @@
         <canvas id="canvas"></canvas>
         <div id="loading-overlay">
             <div class="spinner"></div>
-            <p style="margin-top: 15px; font-weight: 600;">Generating Map Stamp...</p>
+            <p style="margin-top: 15px; font-weight: 600;">Generating HD Map Stamp...</p>
         </div>
     </div>
 
     <script>
-        let geo = { lat: 0, lng: 0, alt: 0, acc: 0, city: "Unknown City", address: "Location Details Unavailable" };
+        let geo = { lat: 0, lng: 0, alt: 0, acc: 0, city: "Unknown Location", address: "Location Details Unavailable" };
+        let currentMapStyle = 'satellite'; // Default to Satellite View
 
-        // 1. Get Live Location & Address
+        // Handle Map Selection
+        function selectMap(btn) {
+            document.querySelectorAll('.map-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentMapStyle = btn.getAttribute('data-map');
+        }
+
+        // 1. Get Live Location
         function initGPS() {
             if (navigator.geolocation) {
                 navigator.geolocation.watchPosition(async (pos) => {
@@ -217,7 +267,6 @@
                         if (data && data.address) {
                             geo.city = data.address.city || data.address.town || data.address.village || data.address.county || "Local Area";
                             geo.address = `${data.address.road || ''}, ${data.address.state || ''}, ${data.address.country || ''}`.replace(/^, /, '');
-                            
                             document.getElementById('city-text').innerText = geo.city;
                             document.getElementById('address-text').innerText = geo.address;
                         }
@@ -226,7 +275,7 @@
             }
         }
 
-        // 2. Handle Image Upload
+        // 2. Upload/Capture Image
         document.getElementById('camera-input').addEventListener('change', processImage);
         document.getElementById('gallery-input').addEventListener('change', processImage);
 
@@ -245,9 +294,9 @@
             reader.readAsDataURL(file);
         }
 
-        // 3. Tile Math (Convert Lat/Lng to Map Image)
-        function getMapTileData(lat, lng) {
-            const zoom = 15;
+        // 3. Tile Math & Different Map Providers
+        function getMapTileData(lat, lng, style) {
+            const zoom = 16; // Zoom level (16 is perfect for street/satellite detail)
             const n = Math.pow(2, zoom);
             const exactX = ((lng + 180) / 360) * n;
             const latRad = lat * Math.PI / 180;
@@ -255,18 +304,26 @@
 
             const tileX = Math.floor(exactX);
             const tileY = Math.floor(exactY);
-
-            // Pixel offset inside the tile
             const pixelX = (exactX - tileX) * 256;
             const pixelY = (exactY - tileY) * 256;
 
-            // Free Dark Mode Map Tile URL (Supports CORS)
-            const tileUrl = `https://a.basemaps.cartocdn.com/dark_all/${zoom}/${tileX}/${tileY}.png`;
+            let tileUrl = "";
+            
+            if (style === 'satellite') {
+                // Esri World Imagery (High Quality Satellite)
+                tileUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${zoom}/${tileY}/${tileX}`;
+            } else if (style === 'light') {
+                // OpenStreetMap (Street/Light view)
+                tileUrl = `https://tile.openstreetmap.org/${zoom}/${tileX}/${tileY}.png`;
+            } else {
+                // CartoDB Dark Matter
+                tileUrl = `https://a.basemaps.cartocdn.com/dark_all/${zoom}/${tileX}/${tileY}.png`;
+            }
 
             return { url: tileUrl, px: pixelX, py: pixelY };
         }
 
-        // 4. Draw Canvas Stamp (Photo + Text + Mini Map)
+        // 4. Draw Final Image with Info & Map
         function createMapStamp(photoImg) {
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext('2d');
@@ -275,47 +332,41 @@
             canvas.height = photoImg.height;
             ctx.drawImage(photoImg, 0, 0, canvas.width, canvas.height);
 
-            // Responsive Scaling based on Image resolution
             const scale = canvas.width / 1080;
             const pad = 40 * scale;
             const stampH = 320 * scale;
             const stampW = canvas.width - (pad * 2);
             const stampY = canvas.height - stampH - pad;
 
-            // Draw Background Glass Card
-            ctx.fillStyle = "rgba(15, 17, 21, 0.85)"; // Dark premium BG
+            // Info Card Background (Dark transparent glass)
+            ctx.fillStyle = "rgba(15, 17, 21, 0.85)"; 
             ctx.beginPath();
             ctx.roundRect(pad, stampY, stampW, stampH, 20 * scale);
             ctx.fill();
 
-            // Accent Line
             ctx.fillStyle = "#00e5ff";
             ctx.beginPath();
             ctx.roundRect(pad, stampY, 15 * scale, stampH, [20*scale, 0, 0, 20*scale]);
             ctx.fill();
 
-            // Fetch Live Map Tile
-            const tileData = getMapTileData(geo.lat, geo.lng);
+            const tileData = getMapTileData(geo.lat, geo.lng, currentMapStyle);
             const mapImg = new Image();
-            mapImg.crossOrigin = "anonymous"; // IMPORTANT to prevent Canvas Security Error
+            mapImg.crossOrigin = "anonymous"; 
             
             mapImg.onload = () => {
                 
-                // ---- DRAW TEXT ON LEFT SIDE ----
+                // --- TEXT DATA ---
                 const textX = pad + 40 * scale;
                 ctx.fillStyle = "#ffffff";
                 ctx.textBaseline = "top";
                 
-                // City
                 ctx.font = `bold ${50 * scale}px 'Inter', sans-serif`;
                 ctx.fillText(geo.city.toUpperCase(), textX, stampY + 30 * scale);
                 
-                // Address
                 ctx.fillStyle = "#8b95a5";
                 ctx.font = `500 ${24 * scale}px 'Inter', sans-serif`;
                 ctx.fillText(geo.address.substring(0, 45) + "...", textX, stampY + 90 * scale);
 
-                // Coordinates Grid
                 ctx.fillStyle = "#ffffff";
                 ctx.font = `bold ${26 * scale}px 'Inter', monospace`;
                 const dateStr = new Date().toLocaleDateString('en-GB');
@@ -330,64 +381,65 @@
                 ctx.fillText(`DATE: ${dateStr}`, col2, row1);
                 ctx.fillText(`TIME: ${timeStr}`, col2, row2);
 
-                // Footer data
                 ctx.fillStyle = "#00e5ff";
                 ctx.font = `bold ${20 * scale}px 'Inter', sans-serif`;
                 ctx.fillText(`ALTITUDE: ${geo.alt.toFixed(1)}m   |   ACCURACY: ±${geo.acc.toFixed(0)}m`, textX, stampY + 265 * scale);
 
 
-                // ---- DRAW MINI MAP ON RIGHT SIDE ----
-                const mapSize = stampH - (40 * scale); // Square map
+                // --- DRAW CHOSEN MAP ---
+                const mapSize = stampH - (40 * scale); 
                 const mapX = pad + stampW - mapSize - (20 * scale);
                 const mapY = stampY + (20 * scale);
 
                 ctx.save();
-                // Create rounded clip for Map
                 ctx.beginPath();
                 ctx.roundRect(mapX, mapY, mapSize, mapSize, 15 * scale);
                 ctx.clip();
 
-                // Draw Map Image (Scale 256px tile to fit mapSize)
                 const tileScale = mapSize / 256;
                 ctx.drawImage(mapImg, mapX, mapY, 256 * tileScale, 256 * tileScale);
 
-                // Draw Pin exactly on location
+                // --- DRAW PIN ---
                 const pinDrawX = mapX + (tileData.px * tileScale);
                 const pinDrawY = mapY + (tileData.py * tileScale);
                 
-                // Pin glow
-                ctx.shadowColor = "#00e5ff";
-                ctx.shadowBlur = 15 * scale;
+                // Pin color matching logic
+                const pinColor = (currentMapStyle === 'dark') ? "#00e5ff" : "#ff2a5f"; // Red for Satellite/Light
                 
-                // Pin Body
+                // Pin Border (White outline makes it visible everywhere)
                 ctx.beginPath();
-                ctx.arc(pinDrawX, pinDrawY, 12 * scale, 0, 2 * Math.PI);
-                ctx.fillStyle = "#00e5ff";
+                ctx.arc(pinDrawX, pinDrawY, 14 * scale, 0, 2 * Math.PI);
+                ctx.fillStyle = "#ffffff";
+                ctx.fill();
+
+                // Pin Main Color
+                ctx.shadowColor = "rgba(0,0,0,0.5)";
+                ctx.shadowBlur = 10 * scale;
+                ctx.beginPath();
+                ctx.arc(pinDrawX, pinDrawY, 10 * scale, 0, 2 * Math.PI);
+                ctx.fillStyle = pinColor;
                 ctx.fill();
                 
-                // Pin inner dot
+                // Pin Dot
                 ctx.shadowBlur = 0;
                 ctx.beginPath();
-                ctx.arc(pinDrawX, pinDrawY, 5 * scale, 0, 2 * Math.PI);
-                ctx.fillStyle = "#000";
+                ctx.arc(pinDrawX, pinDrawY, 4 * scale, 0, 2 * Math.PI);
+                ctx.fillStyle = "#ffffff";
                 ctx.fill();
 
-                ctx.restore(); // Remove clipping
+                ctx.restore(); 
 
-                // Map Border
-                ctx.strokeStyle = "rgba(255,255,255,0.2)";
-                ctx.lineWidth = 3 * scale;
+                ctx.strokeStyle = "rgba(255,255,255,0.4)";
+                ctx.lineWidth = 4 * scale;
                 ctx.beginPath();
                 ctx.roundRect(mapX, mapY, mapSize, mapSize, 15 * scale);
                 ctx.stroke();
 
-                // Finish and show UI
                 document.getElementById('result-img').src = canvas.toDataURL('image/jpeg', 0.95);
                 document.getElementById('loading-overlay').style.display = 'none';
                 showPreview();
             };
 
-            // Error fallback agar internet slow ho
             mapImg.onerror = () => {
                 alert("Map load nahi ho paya (Check Internet). Picture bina map ke save ho rahi hai.");
                 document.getElementById('result-img').src = canvas.toDataURL('image/jpeg', 0.95);
@@ -398,7 +450,6 @@
             mapImg.src = tileData.url;
         }
 
-        // Navigation
         function showPreview() {
             document.getElementById('screen-home').classList.remove('active');
             document.getElementById('screen-preview').classList.add('active');
