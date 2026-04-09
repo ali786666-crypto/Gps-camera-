@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GeoLens Pro | Map Options</title>
+    <title>GeoLens Pro | Precise Cam</title>
     
     <!-- Modern Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -16,12 +16,13 @@
             --card-bg: #151821;
             --primary: #00e5ff;
             --primary-glow: rgba(0, 229, 255, 0.4);
-            --pin-color: #ff2a5f; /* Bright Red for better visibility */
+            --warning: #ffb703;
+            --pin-color: #ff2a5f;
             --text-main: #ffffff;
             --text-sub: #8b95a5;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent;}
 
         body {
             background-color: #000;
@@ -32,7 +33,6 @@
             color: var(--text-main);
         }
 
-        /* Mobile View Container */
         .app-container {
             width: 100%;
             max-width: 430px;
@@ -91,14 +91,18 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            color: var(--primary);
             font-size: 0.8rem;
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: 15px;
-            background: rgba(0,229,255,0.1);
             padding: 6px 12px;
             border-radius: 20px;
+            transition: 0.3s;
         }
+        
+        .status.calibrating { color: var(--warning); background: rgba(255, 183, 3, 0.1); }
+        .status.locked { color: var(--primary); background: rgba(0, 229, 255, 0.1); }
+        .status i { animation: blink 1.5s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
         .city { font-size: 1.6rem; font-weight: 700; margin-bottom: 5px; }
         .address { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 20px; line-height: 1.4; }
@@ -106,54 +110,69 @@
         .coords { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .coord-box p { font-size: 0.7rem; color: var(--text-sub); text-transform: uppercase; }
         .coord-box h4 { font-size: 0.95rem; margin-top: 3px; }
+        
+        /* Accuracy Alert text */
+        #acc-text.bad { color: var(--warning); }
+        #acc-text.good { color: var(--primary); }
 
         /* Map Style Selector */
-        .map-selector {
-            margin-top: 20px;
-        }
+        .map-selector { margin-top: 20px; }
         .map-selector p { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 10px; font-weight: 600; }
-        .map-options {
-            display: flex;
-            gap: 10px;
-            background: rgba(255,255,255,0.05);
-            padding: 5px;
-            border-radius: 12px;
-        }
+        .map-options { display: flex; gap: 10px; background: rgba(255,255,255,0.05); padding: 5px; border-radius: 12px; }
         .map-btn {
-            flex: 1;
-            background: transparent;
-            color: var(--text-sub);
-            border: none;
-            padding: 12px 0;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.3s;
+            flex: 1; background: transparent; color: var(--text-sub); border: none; padding: 12px 0;
+            border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.3s;
         }
-        .map-btn.active {
-            background: var(--card-bg);
-            color: var(--primary);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        .map-btn.active { background: var(--card-bg); color: var(--text-main); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+
+        /* --- REAL CAMERA BUTTON STYLES --- */
+        .camera-controls {
+            margin-top: auto;
+            padding-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
         }
 
-        /* Action Buttons */
-        .actions { margin-top: auto; padding-bottom: 20px; display: flex; flex-direction: column; gap: 12px; }
-        
-        .btn {
-            border: none; padding: 18px; border-radius: 16px; font-size: 1.05rem; font-weight: 600;
-            cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px;
+        .btn-gallery {
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            background: var(--card-bg);
+            color: var(--text-main);
+            border: 1px solid rgba(255,255,255,0.1);
+            font-size: 1.2rem;
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer;
             transition: 0.2s;
         }
-        .btn-primary { background: var(--primary); color: #000; box-shadow: 0 8px 25px var(--primary-glow); }
-        .btn-primary:active { transform: scale(0.96); }
-        .btn-secondary { background: var(--card-bg); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-gallery:active { transform: scale(0.9); }
+
+        .btn-shutter {
+            width: 76px; height: 76px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 4px solid var(--bg-dark);
+            box-shadow: 0 0 0 4px #ffffff, 0 10px 30px var(--primary-glow);
+            cursor: pointer;
+            transition: transform 0.1s, background 0.1s;
+            display: flex; justify-content: center; align-items: center;
+            color: #000;
+        }
+        .btn-shutter:active {
+            transform: scale(0.92);
+            background: #e0e0e0;
+        }
 
         /* Preview Screen */
         .preview-box { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
         #result-img { max-width: 100%; max-height: 70vh; border-radius: 12px; object-fit: contain; }
+        
+        .btn-save {
+            width: 100%; padding: 18px; border-radius: 16px; background: var(--primary); color: #000;
+            font-size: 1.05rem; font-weight: 700; border: none; box-shadow: 0 8px 25px var(--primary-glow); cursor: pointer;
+        }
 
-        /* Hidden */
         input[type="file"], canvas { display: none; }
         
         #loading-overlay {
@@ -162,8 +181,6 @@
             flex-direction: column; justify-content: center; align-items: center;
         }
         .spinner { width: 40px; height: 40px; border: 4px solid var(--text-sub); border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-
     </style>
 </head>
 <body>
@@ -171,7 +188,7 @@
     <div class="app-container">
         <header>
             <div class="logo"><i class="fa-solid fa-crosshairs"></i> GeoLens Pro</div>
-            <button id="btn-back" class="btn-secondary" style="display:none; padding: 8px 15px; border-radius: 20px;" onclick="showHome()">
+            <button id="btn-back" style="display:none; background: var(--card-bg); color: #fff; border: 1px solid rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 20px; cursor:pointer;" onclick="showHome()">
                 <i class="fa-solid fa-arrow-left"></i> Back
             </button>
         </header>
@@ -179,15 +196,15 @@
         <!-- DASHBOARD -->
         <div id="screen-home" class="screen active">
             <div class="location-card">
-                <div class="status"><i class="fa-solid fa-satellite-dish"></i> GPS Active</div>
+                <div class="status calibrating" id="gps-status"><i class="fa-solid fa-satellite"></i> Calibrating GPS...</div>
                 <h2 class="city" id="city-text">Locating...</h2>
-                <p class="address" id="address-text">Fetching exact location data...</p>
+                <p class="address" id="address-text">Waiting for precise satellite lock...</p>
 
                 <div class="coords">
                     <div class="coord-box"><p>Latitude</p><h4 id="lat-text">--.----</h4></div>
                     <div class="coord-box"><p>Longitude</p><h4 id="lng-text">--.----</h4></div>
                     <div class="coord-box"><p>Altitude</p><h4 id="alt-text">-- m</h4></div>
-                    <div class="coord-box"><p>Accuracy</p><h4 id="acc-text">± -- m</h4></div>
+                    <div class="coord-box"><p>Accuracy</p><h4 id="acc-text" class="bad">± -- m</h4></div>
                 </div>
             </div>
 
@@ -195,36 +212,35 @@
             <div class="map-selector">
                 <p>Stamp Map Style:</p>
                 <div class="map-options">
-                    <button class="map-btn active" data-map="satellite" onclick="selectMap(this)">
-                        <i class="fa-solid fa-earth-americas"></i> Satellite
-                    </button>
-                    <button class="map-btn" data-map="light" onclick="selectMap(this)">
-                        <i class="fa-solid fa-map"></i> Standard
-                    </button>
-                    <button class="map-btn" data-map="dark" onclick="selectMap(this)">
-                        <i class="fa-solid fa-moon"></i> Dark
-                    </button>
+                    <button class="map-btn active" data-map="satellite" onclick="selectMap(this)">Satellite</button>
+                    <button class="map-btn" data-map="light" onclick="selectMap(this)">Standard</button>
+                    <button class="map-btn" data-map="dark" onclick="selectMap(this)">Dark</button>
                 </div>
             </div>
 
-            <div class="actions">
-                <button class="btn btn-primary" onclick="document.getElementById('camera-input').click()">
-                    <i class="fa-solid fa-camera"></i> Capture & Map Stamp
+            <!-- REAL CAMERA BUTTONS -->
+            <div class="camera-controls">
+                <button class="btn-gallery" onclick="document.getElementById('gallery-input').click()" title="Gallery">
+                    <i class="fa-solid fa-image"></i>
                 </button>
-                <button class="btn btn-secondary" onclick="document.getElementById('gallery-input').click()">
-                    <i class="fa-solid fa-image"></i> Stamp Existing Photo
+                
+                <button class="btn-shutter" onclick="triggerCamera()" title="Capture">
+                    <i class="fa-solid fa-camera" style="font-size: 1.5rem;"></i>
                 </button>
-                <input type="file" id="camera-input" accept="image/*" capture="environment">
-                <input type="file" id="gallery-input" accept="image/*">
+                
+                <div style="width: 50px;"></div> <!-- Spacer for perfect centering -->
             </div>
+
+            <input type="file" id="camera-input" accept="image/*" capture="environment">
+            <input type="file" id="gallery-input" accept="image/*">
         </div>
 
         <!-- PREVIEW -->
         <div id="screen-preview" class="screen">
             <div class="preview-box">
                 <img id="result-img" src="" alt="Geotagged Photo">
-                <button class="btn btn-primary" style="width: 100%;" onclick="downloadPhoto()">
-                    <i class="fa-solid fa-download"></i> Save Photo to Gallery
+                <button class="btn-save" onclick="downloadPhoto()">
+                    <i class="fa-solid fa-download"></i> Save to Gallery
                 </button>
             </div>
         </div>
@@ -237,45 +253,93 @@
     </div>
 
     <script>
-        let geo = { lat: 0, lng: 0, alt: 0, acc: 0, city: "Unknown Location", address: "Location Details Unavailable" };
-        let currentMapStyle = 'satellite'; // Default to Satellite View
+        let geo = { lat: 0, lng: 0, alt: 0, acc: 9999, city: "Unknown Location", address: "Location Details Unavailable" };
+        let currentMapStyle = 'satellite'; 
+        let lastGeocodeTime = 0;
 
-        // Handle Map Selection
         function selectMap(btn) {
             document.querySelectorAll('.map-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentMapStyle = btn.getAttribute('data-map');
         }
 
-        // 1. Get Live Location
+        // --- PRECISE GPS ENGINE ---
         function initGPS() {
-            if (navigator.geolocation) {
-                navigator.geolocation.watchPosition(async (pos) => {
-                    geo.lat = pos.coords.latitude;
-                    geo.lng = pos.coords.longitude;
-                    geo.alt = pos.coords.altitude || 0;
-                    geo.acc = pos.coords.accuracy;
+            if (!navigator.geolocation) return alert("Geolocation not supported.");
 
-                    document.getElementById('lat-text').innerText = geo.lat.toFixed(6);
-                    document.getElementById('lng-text').innerText = geo.lng.toFixed(6);
-                    document.getElementById('alt-text').innerText = geo.alt ? `${geo.alt.toFixed(1)} m` : 'Sea Level';
-                    document.getElementById('acc-text').innerText = `± ${geo.acc.toFixed(0)} m`;
+            // Strict options to force Hardware GPS instead of Cell Towers
+            const options = {
+                enableHighAccuracy: true, 
+                maximumAge: 0, 
+                timeout: 10000 
+            };
 
-                    try {
-                        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${geo.lat}&lon=${geo.lng}&zoom=18&addressdetails=1`);
-                        const data = await res.json();
-                        if (data && data.address) {
-                            geo.city = data.address.city || data.address.town || data.address.village || data.address.county || "Local Area";
-                            geo.address = `${data.address.road || ''}, ${data.address.state || ''}, ${data.address.country || ''}`.replace(/^, /, '');
-                            document.getElementById('city-text').innerText = geo.city;
-                            document.getElementById('address-text').innerText = geo.address;
-                        }
-                    } catch (e) { console.log("Geocode Error"); }
-                }, () => alert("Please turn on GPS Location!"), { enableHighAccuracy: true });
-            }
+            navigator.geolocation.watchPosition(async (pos) => {
+                const acc = pos.coords.accuracy;
+                
+                // Update Global Geo Object
+                geo.lat = pos.coords.latitude;
+                geo.lng = pos.coords.longitude;
+                geo.alt = pos.coords.altitude || 0;
+                geo.acc = acc;
+
+                // Update UI Data
+                document.getElementById('lat-text').innerText = geo.lat.toFixed(6);
+                document.getElementById('lng-text').innerText = geo.lng.toFixed(6);
+                document.getElementById('alt-text').innerText = geo.alt ? `${geo.alt.toFixed(1)} m` : 'Sea Level';
+                
+                const accUI = document.getElementById('acc-text');
+                const statusUI = document.getElementById('gps-status');
+
+                accUI.innerText = `± ${geo.acc.toFixed(0)} m`;
+
+                // Accuracy Logic Checks
+                if (acc > 30) {
+                    accUI.className = 'bad';
+                    statusUI.className = 'status calibrating';
+                    statusUI.innerHTML = '<i class="fa-solid fa-satellite"></i> Calibrating GPS...';
+                } else {
+                    accUI.className = 'good';
+                    statusUI.className = 'status locked';
+                    statusUI.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> Precise Lock!';
+                }
+
+                // Throttle Geocoding (Don't spam the API while GPS is jumping around)
+                const now = Date.now();
+                if (now - lastGeocodeTime > 5000 && acc < 100) {
+                    lastGeocodeTime = now;
+                    fetchAddress(geo.lat, geo.lng);
+                }
+
+            }, (err) => {
+                console.warn("GPS Error: ", err);
+                if(err.code === 1) alert("Please allow Location Permission in your browser settings to use GeoLens.");
+            }, options);
         }
 
-        // 2. Upload/Capture Image
+        async function fetchAddress(lat, lng) {
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+                const data = await res.json();
+                if (data && data.address) {
+                    geo.city = data.address.city || data.address.town || data.address.village || data.address.county || "Local Area";
+                    geo.address = `${data.address.road || ''}, ${data.address.state || ''}, ${data.address.country || ''}`.replace(/^, /, '');
+                    document.getElementById('city-text').innerText = geo.city;
+                    document.getElementById('address-text').innerText = geo.address;
+                }
+            } catch (e) { console.log("Geocode Error"); }
+        }
+
+        // Camera Trigger Logic
+        function triggerCamera() {
+            if (geo.acc > 50) {
+                const confirmCapture = confirm(`GPS Accuracy is currently poor (±${geo.acc.toFixed(0)}m). Please wait a few seconds under a clear sky for a precise lock.\n\nDo you want to capture anyway?`);
+                if (!confirmCapture) return;
+            }
+            document.getElementById('camera-input').click();
+        }
+
+        // Image Processing
         document.getElementById('camera-input').addEventListener('change', processImage);
         document.getElementById('gallery-input').addEventListener('change', processImage);
 
@@ -294,9 +358,8 @@
             reader.readAsDataURL(file);
         }
 
-        // 3. Tile Math & Different Map Providers
         function getMapTileData(lat, lng, style) {
-            const zoom = 16; // Zoom level (16 is perfect for street/satellite detail)
+            const zoom = 16; 
             const n = Math.pow(2, zoom);
             const exactX = ((lng + 180) / 360) * n;
             const latRad = lat * Math.PI / 180;
@@ -308,22 +371,13 @@
             const pixelY = (exactY - tileY) * 256;
 
             let tileUrl = "";
-            
-            if (style === 'satellite') {
-                // Esri World Imagery (High Quality Satellite)
-                tileUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${zoom}/${tileY}/${tileX}`;
-            } else if (style === 'light') {
-                // OpenStreetMap (Street/Light view)
-                tileUrl = `https://tile.openstreetmap.org/${zoom}/${tileX}/${tileY}.png`;
-            } else {
-                // CartoDB Dark Matter
-                tileUrl = `https://a.basemaps.cartocdn.com/dark_all/${zoom}/${tileX}/${tileY}.png`;
-            }
+            if (style === 'satellite') tileUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${zoom}/${tileY}/${tileX}`;
+            else if (style === 'light') tileUrl = `https://tile.openstreetmap.org/${zoom}/${tileX}/${tileY}.png`;
+            else tileUrl = `https://a.basemaps.cartocdn.com/dark_all/${zoom}/${tileX}/${tileY}.png`;
 
             return { url: tileUrl, px: pixelX, py: pixelY };
         }
 
-        // 4. Draw Final Image with Info & Map
         function createMapStamp(photoImg) {
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext('2d');
@@ -338,7 +392,7 @@
             const stampW = canvas.width - (pad * 2);
             const stampY = canvas.height - stampH - pad;
 
-            // Info Card Background (Dark transparent glass)
+            // Info Card
             ctx.fillStyle = "rgba(15, 17, 21, 0.85)"; 
             ctx.beginPath();
             ctx.roundRect(pad, stampY, stampW, stampH, 20 * scale);
@@ -354,8 +408,7 @@
             mapImg.crossOrigin = "anonymous"; 
             
             mapImg.onload = () => {
-                
-                // --- TEXT DATA ---
+                // Text
                 const textX = pad + 40 * scale;
                 ctx.fillStyle = "#ffffff";
                 ctx.textBaseline = "top";
@@ -383,10 +436,9 @@
 
                 ctx.fillStyle = "#00e5ff";
                 ctx.font = `bold ${20 * scale}px 'Inter', sans-serif`;
-                ctx.fillText(`ALTITUDE: ${geo.alt.toFixed(1)}m   |   ACCURACY: ±${geo.acc.toFixed(0)}m`, textX, stampY + 265 * scale);
+                ctx.fillText(`ALT: ${geo.alt.toFixed(1)}m   |   ACCURACY: ±${geo.acc.toFixed(0)}m`, textX, stampY + 265 * scale);
 
-
-                // --- DRAW CHOSEN MAP ---
+                // Map
                 const mapSize = stampH - (40 * scale); 
                 const mapX = pad + stampW - mapSize - (20 * scale);
                 const mapY = stampY + (20 * scale);
@@ -399,54 +451,25 @@
                 const tileScale = mapSize / 256;
                 ctx.drawImage(mapImg, mapX, mapY, 256 * tileScale, 256 * tileScale);
 
-                // --- DRAW PIN ---
+                // Pin
                 const pinDrawX = mapX + (tileData.px * tileScale);
                 const pinDrawY = mapY + (tileData.py * tileScale);
+                const pinColor = (currentMapStyle === 'dark') ? "#00e5ff" : "#ff2a5f"; 
                 
-                // Pin color matching logic
-                const pinColor = (currentMapStyle === 'dark') ? "#00e5ff" : "#ff2a5f"; // Red for Satellite/Light
-                
-                // Pin Border (White outline makes it visible everywhere)
-                ctx.beginPath();
-                ctx.arc(pinDrawX, pinDrawY, 14 * scale, 0, 2 * Math.PI);
-                ctx.fillStyle = "#ffffff";
-                ctx.fill();
-
-                // Pin Main Color
-                ctx.shadowColor = "rgba(0,0,0,0.5)";
-                ctx.shadowBlur = 10 * scale;
-                ctx.beginPath();
-                ctx.arc(pinDrawX, pinDrawY, 10 * scale, 0, 2 * Math.PI);
-                ctx.fillStyle = pinColor;
-                ctx.fill();
-                
-                // Pin Dot
+                ctx.beginPath(); ctx.arc(pinDrawX, pinDrawY, 14 * scale, 0, 2 * Math.PI); ctx.fillStyle = "#ffffff"; ctx.fill();
+                ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 10 * scale;
+                ctx.beginPath(); ctx.arc(pinDrawX, pinDrawY, 10 * scale, 0, 2 * Math.PI); ctx.fillStyle = pinColor; ctx.fill();
                 ctx.shadowBlur = 0;
-                ctx.beginPath();
-                ctx.arc(pinDrawX, pinDrawY, 4 * scale, 0, 2 * Math.PI);
-                ctx.fillStyle = "#ffffff";
-                ctx.fill();
-
+                ctx.beginPath(); ctx.arc(pinDrawX, pinDrawY, 4 * scale, 0, 2 * Math.PI); ctx.fillStyle = "#ffffff"; ctx.fill();
                 ctx.restore(); 
 
-                ctx.strokeStyle = "rgba(255,255,255,0.4)";
-                ctx.lineWidth = 4 * scale;
-                ctx.beginPath();
-                ctx.roundRect(mapX, mapY, mapSize, mapSize, 15 * scale);
-                ctx.stroke();
+                ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 4 * scale;
+                ctx.beginPath(); ctx.roundRect(mapX, mapY, mapSize, mapSize, 15 * scale); ctx.stroke();
 
                 document.getElementById('result-img').src = canvas.toDataURL('image/jpeg', 0.95);
                 document.getElementById('loading-overlay').style.display = 'none';
                 showPreview();
             };
-
-            mapImg.onerror = () => {
-                alert("Map load nahi ho paya (Check Internet). Picture bina map ke save ho rahi hai.");
-                document.getElementById('result-img').src = canvas.toDataURL('image/jpeg', 0.95);
-                document.getElementById('loading-overlay').style.display = 'none';
-                showPreview();
-            };
-            
             mapImg.src = tileData.url;
         }
 
@@ -460,13 +483,12 @@
             document.getElementById('screen-preview').classList.remove('active');
             document.getElementById('screen-home').classList.add('active');
             document.getElementById('btn-back').style.display = 'none';
-            document.getElementById('camera-input').value = ""; 
-            document.getElementById('gallery-input').value = "";
+            document.getElementById('camera-input').value = ""; document.getElementById('gallery-input').value = "";
         }
 
         function downloadPhoto() {
             const link = document.createElement('a');
-            link.download = `GeoLens_Map_${Date.now()}.jpg`;
+            link.download = `GeoLens_Precise_${Date.now()}.jpg`;
             link.href = document.getElementById('canvas').toDataURL('image/jpeg', 1.0);
             link.click();
         }
