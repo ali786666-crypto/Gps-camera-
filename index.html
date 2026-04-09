@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GeoLens Pro | Live Map Sync</title>
+    <title>GeoLens Pro | HD Map Engine</title>
     
     <!-- Modern Icons & Leaflet Map CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -284,7 +284,7 @@
         <canvas id="canvas"></canvas>
         <div id="loading-overlay">
             <div class="spinner"></div>
-            <p style="margin-top: 15px; font-weight: 600;">Stamping HD Map...</p>
+            <p id="loading-text" style="margin-top: 15px; font-weight: 600;">Stitching HD Map...</p>
         </div>
     </div>
 
@@ -294,9 +294,8 @@
     <script>
         let geo = { lat: 0, lng: 0, alt: 0, acc: 9999, city: "Unknown", address: "Details Unavailable" };
         let dashMap, dashMarker, currentTileLayer;
-        let currentMapStyle = 'satellite'; // Default Map
+        let currentMapStyle = 'satellite';
 
-        // Map Tile URLs for Leaflet
         const mapProviders = {
             satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
             light: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -316,11 +315,8 @@
             btn.classList.add('active');
             currentMapStyle = btn.getAttribute('data-map');
             
-            // Instantly update the Live Dashboard Map
             if(currentTileLayer) dashMap.removeLayer(currentTileLayer);
             currentTileLayer = L.tileLayer(mapProviders[currentMapStyle], {maxZoom: 19}).addTo(dashMap);
-
-            // Update GPS Dot Color based on Map Brightness
             updateMarkerColor();
         }
 
@@ -337,8 +333,6 @@
         // 3. Initialize Dashboard Map
         function initDashboardMap() {
             dashMap = L.map('dashboard-map', {zoomControl: false, attributionControl: false}).setView([0, 0], 2);
-            
-            // Set Initial Layer (Satellite)
             currentTileLayer = L.tileLayer(mapProviders[currentMapStyle], {maxZoom: 19}).addTo(dashMap);
             
             const gpsDot = L.divIcon({
@@ -370,7 +364,6 @@
                 document.getElementById('map-status').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Refining...';
             }
 
-            // Update Map Visually
             dashMap.setView([geo.lat, geo.lng], 16);
             dashMarker.setLatLng([geo.lat, geo.lng]);
             fetchAddress(geo.lat, geo.lng);
@@ -381,18 +374,16 @@
             navigator.geolocation.watchPosition(updatePositionData, (err) => console.log(err), { enableHighAccuracy: true, maximumAge: 0 });
         }
 
-        // Force GPS Update & Recenter Button
         function forceRecenterGPS() {
             document.getElementById('map-status').innerHTML = '<i class="fa-solid fa-satellite-dish"></i> Fetching...';
             navigator.geolocation.getCurrentPosition(updatePositionData, (err) => alert("Make sure Location is enabled!"), { enableHighAccuracy: true, maximumAge: 0 });
             if(geo.lat !== 0) dashMap.flyTo([geo.lat, geo.lng], 17, {animate: true, duration: 1});
         }
 
-        // 5. Reverse Geocoding
         let lastAddressTime = 0;
         async function fetchAddress(lat, lng) {
             const now = Date.now();
-            if(now - lastAddressTime < 8000) return; // Prevent spam
+            if(now - lastAddressTime < 8000) return;
             lastAddressTime = now;
 
             try {
@@ -407,7 +398,7 @@
             } catch (e) { console.log("Geocode failed"); }
         }
 
-        // 6. Image Processing & Canvas Stamping
+        // 6. Image Processing & HD Stitched Map Generation
         document.getElementById('camera-input').addEventListener('change', processImage);
         document.getElementById('gallery-input').addEventListener('change', processImage);
 
@@ -415,6 +406,7 @@
             const file = e.target.files[0];
             if (!file) return;
             document.getElementById('loading-overlay').style.display = 'flex';
+            document.getElementById('loading-text').innerText = "Stitching HD Map...";
             
             const reader = new FileReader();
             reader.onload = (event) => {
@@ -425,25 +417,69 @@
             reader.readAsDataURL(file);
         }
 
-        function getCanvasTileData(lat, lng, style) {
-            const zoom = 16; 
-            const n = Math.pow(2, zoom);
-            const exactX = ((lng + 180) / 360) * n;
-            const latRad = lat * Math.PI / 180;
-            const exactY = (1 - (Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI)) / 2 * n;
+        // FULL HD 3x3 TILE STITCHING ENGINE
+        function fetchHDMapGrid(lat, lng, style) {
+            return new Promise((resolve) => {
+                const zoom = 17; // Zoom 17 ensures extremely sharp details for street/satellite
+                const n = Math.pow(2, zoom);
+                const latRad = lat * Math.PI / 180;
+                
+                const exactX = ((lng + 180) / 360) * n;
+                const exactY = (1 - (Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI)) / 2 * n;
 
-            const tileX = Math.floor(exactX);
-            const tileY = Math.floor(exactY);
-            
-            let tileUrl = "";
-            if (style === 'satellite') tileUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${zoom}/${tileY}/${tileX}`;
-            else if (style === 'light') tileUrl = `https://tile.openstreetmap.org/${zoom}/${tileX}/${tileY}.png`;
-            else tileUrl = `https://a.basemaps.cartocdn.com/dark_all/${zoom}/${tileX}/${tileY}.png`;
+                const tileX = Math.floor(exactX);
+                const tileY = Math.floor(exactY);
 
-            return { url: tileUrl, px: (exactX - tileX) * 256, py: (exactY - tileY) * 256 };
+                // Offset of the user location inside the CENTER tile
+                const pxOffset = (exactX - tileX) * 256;
+                const pyOffset = (exactY - tileY) * 256;
+
+                const promises = [];
+
+                // Fetch a 3x3 grid of tiles around the user
+                for(let i = -1; i <= 1; i++) {
+                    for(let j = -1; j <= 1; j++) {
+                        const tx = tileX + j;
+                        const ty = tileY + i;
+                        
+                        let url = "";
+                        if (style === 'satellite') url = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${zoom}/${ty}/${tx}`;
+                        else if (style === 'light') url = `https://tile.openstreetmap.org/${zoom}/${tx}/${ty}.png`;
+                        else url = `https://a.basemaps.cartocdn.com/dark_all/${zoom}/${tx}/${ty}.png`;
+
+                        const p = new Promise((res) => {
+                            const img = new Image();
+                            img.crossOrigin = "anonymous";
+                            // The destination X and Y on the 768x768 stitched canvas
+                            img.onload = () => res({img, dx: (j+1)*256, dy: (i+1)*256});
+                            img.onerror = () => res(null); 
+                            img.src = url;
+                        });
+                        promises.push(p);
+                    }
+                }
+
+                // Wait for all 9 HD tiles to download
+                Promise.all(promises).then(results => {
+                    const offscreen = document.createElement('canvas');
+                    offscreen.width = 768; // 3 tiles wide (256 * 3)
+                    offscreen.height = 768; // 3 tiles high
+                    const octx = offscreen.getContext('2d');
+                    
+                    results.forEach(res => {
+                        if(res && res.img) octx.drawImage(res.img, res.dx, res.dy, 256, 256);
+                    });
+
+                    // The exact pixel of the user on this massive 768x768 stitched image
+                    const userPx = 256 + pxOffset;
+                    const userPy = 256 + pyOffset;
+
+                    resolve({ canvas: offscreen, userPx, userPy });
+                });
+            });
         }
 
-        function createMapStamp(photoImg) {
+        async function createMapStamp(photoImg) {
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext('2d');
 
@@ -454,59 +490,80 @@
             const pad = 40 * scale; const stampH = 320 * scale;
             const stampW = canvas.width - (pad * 2); const stampY = canvas.height - stampH - pad;
 
+            // Base Stamp Background
             ctx.fillStyle = "rgba(15, 17, 21, 0.85)"; 
             ctx.beginPath(); ctx.roundRect(pad, stampY, stampW, stampH, 20 * scale); ctx.fill();
 
+            // Cyan Border Line
             ctx.fillStyle = "#00e5ff";
             ctx.beginPath(); ctx.roundRect(pad, stampY, 15 * scale, stampH, [20*scale, 0, 0, 20*scale]); ctx.fill();
 
-            const tileData = getCanvasTileData(geo.lat, geo.lng, currentMapStyle);
-            const mapImg = new Image(); mapImg.crossOrigin = "anonymous"; 
+            // Wait for HD Map Stitching Engine
+            const mapData = await fetchHDMapGrid(geo.lat, geo.lng, currentMapStyle);
             
-            mapImg.onload = () => {
-                const textX = pad + 40 * scale; ctx.fillStyle = "#ffffff"; ctx.textBaseline = "top";
-                
-                ctx.font = `bold ${50 * scale}px 'Inter', sans-serif`;
-                ctx.fillText(geo.city.toUpperCase(), textX, stampY + 30 * scale);
-                
-                ctx.fillStyle = "#8b95a5"; ctx.font = `500 ${24 * scale}px 'Inter', sans-serif`;
-                ctx.fillText(geo.address.substring(0, 45) + "...", textX, stampY + 90 * scale);
-
-                ctx.fillStyle = "#ffffff"; ctx.font = `bold ${26 * scale}px 'Inter', monospace`;
-                const dateStr = new Date().toLocaleDateString('en-GB');
-                const timeStr = new Date().toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'});
-
-                const row1 = stampY + 160 * scale; const row2 = stampY + 210 * scale; const col2 = textX + 300 * scale;
-                ctx.fillText(`LAT: ${geo.lat.toFixed(6)}`, textX, row1);
-                ctx.fillText(`LNG: ${geo.lng.toFixed(6)}`, textX, row2);
-                ctx.fillText(`DATE: ${dateStr}`, col2, row1);
-                ctx.fillText(`TIME: ${timeStr}`, col2, row2);
-
-                ctx.fillStyle = "#00e5ff"; ctx.font = `bold ${20 * scale}px 'Inter', sans-serif`;
-                ctx.fillText(`ALT: ${geo.alt.toFixed(1)}m   |   ACCURACY: ±${geo.acc.toFixed(0)}m`, textX, stampY + 265 * scale);
-
-                const mapSize = stampH - (40 * scale); const mapX = pad + stampW - mapSize - (20 * scale); const mapY = stampY + (20 * scale);
-
-                ctx.save(); ctx.beginPath(); ctx.roundRect(mapX, mapY, mapSize, mapSize, 15 * scale); ctx.clip();
-                const tileScale = mapSize / 256; ctx.drawImage(mapImg, mapX, mapY, 256 * tileScale, 256 * tileScale);
-
-                const pinDrawX = mapX + (tileData.px * tileScale); const pinDrawY = mapY + (tileData.py * tileScale);
-                const pinColor = (currentMapStyle === 'dark') ? "#00e5ff" : "#ff2a5f"; 
-
-                ctx.beginPath(); ctx.arc(pinDrawX, pinDrawY, 14 * scale, 0, 2 * Math.PI); ctx.fillStyle = "#ffffff"; ctx.fill();
-                ctx.beginPath(); ctx.arc(pinDrawX, pinDrawY, 10 * scale, 0, 2 * Math.PI); ctx.fillStyle = pinColor; ctx.fill();
-                ctx.restore(); 
-
-                ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 4 * scale;
-                ctx.beginPath(); ctx.roundRect(mapX, mapY, mapSize, mapSize, 15 * scale); ctx.stroke();
-
-                document.getElementById('result-img').src = canvas.toDataURL('image/jpeg', 0.95);
-                document.getElementById('loading-overlay').style.display = 'none';
-                showPreview();
-            };
+            // Text Drawing
+            const textX = pad + 40 * scale; ctx.fillStyle = "#ffffff"; ctx.textBaseline = "top";
             
-            mapImg.onerror = () => { alert("Internet Issue: Stamp generated without map."); document.getElementById('loading-overlay').style.display = 'none'; showPreview(); }
-            mapImg.src = tileData.url;
+            ctx.font = `bold ${50 * scale}px 'Inter', sans-serif`;
+            ctx.fillText(geo.city.toUpperCase(), textX, stampY + 30 * scale);
+            
+            ctx.fillStyle = "#8b95a5"; ctx.font = `500 ${24 * scale}px 'Inter', sans-serif`;
+            ctx.fillText(geo.address.substring(0, 45) + "...", textX, stampY + 90 * scale);
+
+            ctx.fillStyle = "#ffffff"; ctx.font = `bold ${26 * scale}px 'Inter', monospace`;
+            const dateStr = new Date().toLocaleDateString('en-GB');
+            const timeStr = new Date().toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'});
+
+            const row1 = stampY + 160 * scale; const row2 = stampY + 210 * scale; const col2 = textX + 300 * scale;
+            ctx.fillText(`LAT: ${geo.lat.toFixed(6)}`, textX, row1);
+            ctx.fillText(`LNG: ${geo.lng.toFixed(6)}`, textX, row2);
+            ctx.fillText(`DATE: ${dateStr}`, col2, row1);
+            ctx.fillText(`TIME: ${timeStr}`, col2, row2);
+
+            ctx.fillStyle = "#00e5ff"; ctx.font = `bold ${20 * scale}px 'Inter', sans-serif`;
+            ctx.fillText(`ALT: ${geo.alt.toFixed(1)}m   |   ACCURACY: ±${geo.acc.toFixed(0)}m`, textX, stampY + 265 * scale);
+
+            // HD Map Drawing Logic
+            const mapSize = stampH - (40 * scale); 
+            const mapX = pad + stampW - mapSize - (20 * scale); 
+            const mapY = stampY + (20 * scale);
+
+            ctx.save(); 
+            ctx.beginPath(); 
+            ctx.roundRect(mapX, mapY, mapSize, mapSize, 15 * scale); 
+            ctx.clip(); // Mask the drawing area to the square box
+
+            // Calculate scaling to ensure the map is zoomed in and HD
+            const drawScale = mapSize / 400; // This essentially magnifies the HD canvas to fit nicely
+            
+            const scaledUserPx = mapData.userPx * drawScale;
+            const scaledUserPy = mapData.userPy * drawScale;
+            
+            const boxCenterX = mapX + mapSize / 2;
+            const boxCenterY = mapY + mapSize / 2;
+            
+            // Translate drawing so the user location is perfectly in the center of the mask
+            const drawX = boxCenterX - scaledUserPx;
+            const drawY = boxCenterY - scaledUserPy;
+
+            // Draw the stitched 768x768 HD map
+            ctx.drawImage(mapData.canvas, drawX, drawY, 768 * drawScale, 768 * drawScale);
+
+            // Draw Centered Pin
+            const pinColor = (currentMapStyle === 'dark') ? "#00e5ff" : "#ff2a5f"; 
+
+            ctx.beginPath(); ctx.arc(boxCenterX, boxCenterY, 14 * scale, 0, 2 * Math.PI); ctx.fillStyle = "#ffffff"; ctx.fill();
+            ctx.beginPath(); ctx.arc(boxCenterX, boxCenterY, 10 * scale, 0, 2 * Math.PI); ctx.fillStyle = pinColor; ctx.fill();
+            ctx.restore(); // Remove clipping
+
+            // Map Border
+            ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 4 * scale;
+            ctx.beginPath(); ctx.roundRect(mapX, mapY, mapSize, mapSize, 15 * scale); ctx.stroke();
+
+            // Output Result
+            document.getElementById('result-img').src = canvas.toDataURL('image/jpeg', 0.95);
+            document.getElementById('loading-overlay').style.display = 'none';
+            showPreview();
         }
 
         function showPreview() {
@@ -523,7 +580,7 @@
         }
 
         function downloadPhoto() {
-            const link = document.createElement('a'); link.download = `GeoLens_${Date.now()}.jpg`;
+            const link = document.createElement('a'); link.download = `GeoLens_HD_${Date.now()}.jpg`;
             link.href = document.getElementById('canvas').toDataURL('image/jpeg', 1.0); link.click();
         }
 
