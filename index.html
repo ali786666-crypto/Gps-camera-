@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GeoLens Pro | HD Map Engine</title>
+    <title>GeoLens Pro | Premium Geotag</title>
     
     <!-- Modern Icons & Leaflet Map CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -49,163 +49,149 @@
                 height: 90vh;
                 border-radius: 40px;
                 border: 8px solid #222;
-                box-shadow: 0 0 50px rgba(0,229,255,0.1);
+                box-shadow: 0 0 60px rgba(0,229,255,0.15);
             }
         }
 
-        /* HEADER */
-        header {
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--bg-dark);
-            z-index: 10;
+        /* --- PREMIUM STARTUP INTRO --- */
+        #splash-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #05070a; z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.8, 0, 0.2, 1);
         }
 
+        #splash-screen.hide {
+            opacity: 0;
+            transform: scale(1.1);
+            pointer-events: none;
+        }
+
+        .splash-logo-box {
+            position: relative; width: 120px; height: 120px;
+            display: flex; justify-content: center; align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .splash-ring {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            border: 2px dashed rgba(255,255,255,0.2);
+            border-top: 2px solid var(--primary);
+            border-radius: 50%;
+            animation: spinRing 2s linear infinite;
+        }
+        
+        .splash-ring-inner {
+            position: absolute; top: 15%; left: 15%; width: 70%; height: 70%;
+            border: 1px solid rgba(0, 229, 255, 0.3);
+            border-bottom: 2px solid var(--primary);
+            border-radius: 50%;
+            animation: spinRingReverse 3s linear infinite;
+        }
+
+        .splash-icon {
+            font-size: 2.5rem; color: var(--primary);
+            text-shadow: 0 0 20px var(--primary-glow);
+            animation: pulseIcon 2s infinite;
+        }
+
+        .splash-title {
+            font-size: 1.8rem; font-weight: 700; letter-spacing: 2px;
+            color: #fff; margin-bottom: 10px;
+            animation: slideUp 1s ease;
+        }
+        .splash-title span { color: var(--primary); }
+
+        .splash-subtitle {
+            font-size: 0.85rem; color: var(--text-sub); letter-spacing: 1px; text-transform: uppercase;
+            animation: slideUp 1.2s ease;
+        }
+
+        .splash-loader-bar {
+            width: 150px; height: 3px; background: rgba(255,255,255,0.1);
+            border-radius: 3px; margin-top: 40px; overflow: hidden;
+            position: relative;
+        }
+        .splash-progress {
+            position: absolute; top: 0; left: 0; height: 100%;
+            background: var(--primary); width: 0%;
+            box-shadow: 0 0 10px var(--primary);
+            animation: loadProgress 3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes spinRing { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes spinRingReverse { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
+        @keyframes pulseIcon { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(0.9); opacity: 0.7; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes loadProgress { 0% { width: 0%; } 50% { width: 60%; } 100% { width: 100%; } }
+
+        /* --- MAIN APP UI --- */
+        header { padding: 20px; display: flex; justify-content: space-between; align-items: center; background: var(--bg-dark); z-index: 10; }
         .logo { font-size: 1.2rem; font-weight: 700; }
         .logo i { color: var(--primary); margin-right: 5px; }
 
-        .screen {
-            flex: 1;
-            display: none;
-            flex-direction: column;
-            padding: 0 20px 20px 20px;
-            animation: fadeIn 0.3s ease;
-            overflow-y: auto;
-        }
+        .screen { flex: 1; display: none; flex-direction: column; padding: 0 20px 20px 20px; animation: fadeIn 0.4s ease; overflow-y: auto; }
         .screen.active { display: flex; }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* LIVE MAP ON DASHBOARD */
         .live-map-wrapper {
-            width: 100%;
-            height: 180px;
-            border-radius: 20px;
-            overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.1);
-            margin-bottom: 15px;
-            position: relative;
-            background: #111;
+            width: 100%; height: 180px; border-radius: 20px; overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1); margin-bottom: 15px; position: relative; background: #111;
         }
         #dashboard-map { width: 100%; height: 100%; }
         
-        .map-badge {
-            position: absolute; top: 10px; left: 10px; z-index: 1000;
-            background: rgba(0,0,0,0.7); backdrop-filter: blur(5px);
-            padding: 5px 10px; border-radius: 12px; font-size: 0.75rem; color: var(--primary); font-weight: 600;
-        }
-
-        /* RECENTER GPS BUTTON */
-        .btn-recenter {
-            position: absolute; bottom: 10px; right: 10px; z-index: 1000;
-            width: 40px; height: 40px; border-radius: 50%;
-            background: rgba(17, 19, 24, 0.9); backdrop-filter: blur(5px);
-            color: var(--primary); border: 1px solid rgba(0,229,255,0.3);
-            display: flex; justify-content: center; align-items: center;
-            font-size: 1.2rem; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            transition: 0.2s;
-        }
+        .map-badge { position: absolute; top: 10px; left: 10px; z-index: 1000; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); padding: 5px 10px; border-radius: 12px; font-size: 0.75rem; color: var(--primary); font-weight: 600; }
+        .btn-recenter { position: absolute; bottom: 10px; right: 10px; z-index: 1000; width: 40px; height: 40px; border-radius: 50%; background: rgba(17, 19, 24, 0.9); backdrop-filter: blur(5px); color: var(--primary); border: 1px solid rgba(0,229,255,0.3); display: flex; justify-content: center; align-items: center; font-size: 1.2rem; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.5); transition: 0.2s; }
         .btn-recenter:active { transform: scale(0.9); background: var(--primary); color: #000; }
 
-        /* INFO CARD */
-        .location-card {
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
-            margin-bottom: 15px;
-        }
-
-        .date-time {
-            display: flex; justify-content: space-between;
-            font-size: 0.85rem; color: var(--primary); font-weight: 600;
-            margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-
+        .location-card { background: var(--card-bg); border-radius: 20px; padding: 20px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05); margin-bottom: 15px; }
+        .date-time { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--primary); font-weight: 600; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .city { font-size: 1.4rem; font-weight: 700; margin-bottom: 5px; }
         .address { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 15px; line-height: 1.4; }
-
         .coords { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .coord-box p { font-size: 0.7rem; color: var(--text-sub); text-transform: uppercase; }
         .coord-box h4 { font-size: 0.95rem; margin-top: 3px; font-family: monospace; }
-        
-        .acc-good { color: var(--primary); }
-        .acc-bad { color: var(--warning); }
+        .acc-good { color: var(--primary); } .acc-bad { color: var(--warning); }
 
-        /* MAP STYLE SELECTOR */
         .map-selector { margin-bottom: 15px; }
         .map-selector p { font-size: 0.8rem; color: var(--text-sub); margin-bottom: 8px; font-weight: 600; }
         .map-options { display: flex; gap: 8px; background: rgba(255,255,255,0.05); padding: 5px; border-radius: 12px; }
-        .map-btn {
-            flex: 1; background: transparent; color: var(--text-sub); border: none; padding: 10px 0;
-            border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: 0.3s;
-        }
+        .map-btn { flex: 1; background: transparent; color: var(--text-sub); border: none; padding: 10px 0; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: 0.3s; }
         .map-btn.active { background: var(--card-bg); color: var(--text-main); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
 
-        /* REAL CAMERA BUTTONS */
-        .camera-controls {
-            margin-top: auto;
-            padding: 10px 0 20px 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 40px;
-            background: var(--bg-dark);
-        }
-
-        .btn-gallery {
-            width: 50px; height: 50px;
-            border-radius: 50%;
-            background: var(--card-bg);
-            color: var(--text-main);
-            font-size: 1.2rem;
-            display: flex; justify-content: center; align-items: center;
-            cursor: pointer; border: none; transition: 0.2s;
-        }
+        .camera-controls { margin-top: auto; padding: 10px 0 20px 0; display: flex; align-items: center; justify-content: center; gap: 40px; background: var(--bg-dark); }
+        .btn-gallery { width: 50px; height: 50px; border-radius: 50%; background: var(--card-bg); color: var(--text-main); font-size: 1.2rem; display: flex; justify-content: center; align-items: center; cursor: pointer; border: none; transition: 0.2s; }
         .btn-gallery:active { transform: scale(0.9); }
-
-        .btn-shutter {
-            width: 80px; height: 80px;
-            border-radius: 50%;
-            background: #ffffff;
-            border: 5px solid var(--bg-dark);
-            box-shadow: 0 0 0 4px #ffffff, 0 5px 20px var(--primary-glow);
-            cursor: pointer;
-            display: flex; justify-content: center; align-items: center;
-            color: #000;
-            transition: transform 0.1s;
-        }
+        .btn-shutter { width: 80px; height: 80px; border-radius: 50%; background: #ffffff; border: 5px solid var(--bg-dark); box-shadow: 0 0 0 4px #ffffff, 0 5px 20px var(--primary-glow); cursor: pointer; display: flex; justify-content: center; align-items: center; color: #000; transition: transform 0.1s; }
         .btn-shutter:active { transform: scale(0.9); background: #ddd; }
 
-        /* Preview Screen */
         .preview-box { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
         #result-img { max-width: 100%; max-height: 70vh; border-radius: 12px; object-fit: contain; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        
-        .btn-save {
-            width: 100%; padding: 18px; border-radius: 16px; background: var(--primary); color: #000;
-            font-size: 1.05rem; font-weight: 700; border: none; cursor: pointer;
-        }
+        .btn-save { width: 100%; padding: 18px; border-radius: 16px; background: var(--primary); color: #000; font-size: 1.05rem; font-weight: 700; border: none; cursor: pointer; }
 
         input[type="file"], canvas { display: none; }
-        
-        #loading-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 1000; display: none; 
-            flex-direction: column; justify-content: center; align-items: center;
-        }
+        #loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; display: none; flex-direction: column; justify-content: center; align-items: center; }
         .spinner { width: 40px; height: 40px; border: 4px solid var(--text-sub); border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-
     </style>
 </head>
 <body>
 
     <div class="app-container">
+        
+        <!-- PREMIUM SPLASH SCREEN -->
+        <div id="splash-screen">
+            <div class="splash-logo-box">
+                <div class="splash-ring"></div>
+                <div class="splash-ring-inner"></div>
+                <i class="fa-solid fa-crosshairs splash-icon"></i>
+            </div>
+            <h1 class="splash-title">GeoLens <span>Pro</span></h1>
+            <p class="splash-subtitle">Acquiring Satellites</p>
+            <div class="splash-loader-bar"><div class="splash-progress"></div></div>
+        </div>
+        <!-- END SPLASH SCREEN -->
+
         <header>
             <div class="logo"><i class="fa-solid fa-crosshairs"></i> GeoLens Pro</div>
             <button id="btn-back" style="display:none; background: var(--card-bg); color: #fff; border: none; padding: 8px 15px; border-radius: 20px; cursor:pointer;" onclick="showHome()">
@@ -216,23 +202,19 @@
         <!-- DASHBOARD -->
         <div id="screen-home" class="screen active">
             
-            <!-- Live Mini Map -->
             <div class="live-map-wrapper">
                 <div class="map-badge" id="map-status"><i class="fa-solid fa-spinner fa-spin"></i> Getting GPS...</div>
                 <div id="dashboard-map"></div>
-                <!-- GPS Recenter Button -->
                 <button class="btn-recenter" onclick="forceRecenterGPS()" title="Find My Location">
                     <i class="fa-solid fa-location-crosshairs"></i>
                 </button>
             </div>
 
-            <!-- Location Details -->
             <div class="location-card">
                 <div class="date-time">
                     <span id="live-date">--/--/----</span>
                     <span id="live-time">--:--:--</span>
                 </div>
-
                 <h2 class="city" id="city-text">Locating...</h2>
                 <p class="address" id="address-text">Fetching mobile GPS details...</p>
 
@@ -244,7 +226,6 @@
                 </div>
             </div>
 
-            <!-- MAP SELECTION OPTIONS -->
             <div class="map-selector">
                 <p>Choose Stamp Map Style:</p>
                 <div class="map-options">
@@ -254,17 +235,14 @@
                 </div>
             </div>
 
-            <!-- REAL CAMERA SHUTTER -->
             <div class="camera-controls">
                 <button class="btn-gallery" onclick="document.getElementById('gallery-input').click()">
                     <i class="fa-solid fa-image"></i>
                 </button>
-                
                 <button class="btn-shutter" onclick="document.getElementById('camera-input').click()">
                     <i class="fa-solid fa-camera" style="font-size: 1.8rem;"></i>
                 </button>
-                
-                <div style="width: 50px;"></div> <!-- Spacer -->
+                <div style="width: 50px;"></div>
             </div>
 
             <input type="file" id="camera-input" accept="image/*" capture="environment">
@@ -288,7 +266,6 @@
         </div>
     </div>
 
-    <!-- Leaflet JS for Live Dashboard Map -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
@@ -302,14 +279,25 @@
             dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
         };
 
-        // 1. Live Clock
+        // --- INIT & SPLASH LOGIC ---
+        window.onload = () => { 
+            // 1. Start loading map & GPS silently in the background
+            initDashboardMap(); 
+            initFastGPS(); 
+            
+            // 2. Wait 3.5 Seconds for cinematic intro, then fade out
+            setTimeout(() => {
+                document.getElementById('splash-screen').classList.add('hide');
+            }, 3500);
+        };
+
+        // Live Clock
         setInterval(() => {
             const now = new Date();
             document.getElementById('live-date').innerText = now.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'});
             document.getElementById('live-time').innerText = now.toLocaleTimeString('en-US', {hour12:true, hour:'2-digit', minute:'2-digit', second:'2-digit'});
         }, 1000);
 
-        // 2. Select & Update Live Map Style
         function selectMap(btn) {
             document.querySelectorAll('.map-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
@@ -330,7 +318,6 @@
             dashMarker.setIcon(newIcon);
         }
 
-        // 3. Initialize Dashboard Map
         function initDashboardMap() {
             dashMap = L.map('dashboard-map', {zoomControl: false, attributionControl: false}).setView([0, 0], 2);
             currentTileLayer = L.tileLayer(mapProviders[currentMapStyle], {maxZoom: 19}).addTo(dashMap);
@@ -342,12 +329,9 @@
             dashMarker = L.marker([0, 0], {icon: gpsDot}).addTo(dashMap);
         }
 
-        // 4. Ultra Fast GPS Engine & Update Data
         function updatePositionData(pos) {
-            geo.lat = pos.coords.latitude;
-            geo.lng = pos.coords.longitude;
-            geo.alt = pos.coords.altitude || 0;
-            geo.acc = pos.coords.accuracy;
+            geo.lat = pos.coords.latitude; geo.lng = pos.coords.longitude;
+            geo.alt = pos.coords.altitude || 0; geo.acc = pos.coords.accuracy;
 
             document.getElementById('lat-text').innerText = geo.lat.toFixed(6);
             document.getElementById('lng-text').innerText = geo.lng.toFixed(6);
@@ -370,13 +354,14 @@
         }
 
         function initFastGPS() {
-            if (!navigator.geolocation) return alert("Location not supported.");
-            navigator.geolocation.watchPosition(updatePositionData, (err) => console.log(err), { enableHighAccuracy: true, maximumAge: 0 });
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition(updatePositionData, (err) => console.log(err), { enableHighAccuracy: true, maximumAge: 0 });
+            }
         }
 
         function forceRecenterGPS() {
             document.getElementById('map-status').innerHTML = '<i class="fa-solid fa-satellite-dish"></i> Fetching...';
-            navigator.geolocation.getCurrentPosition(updatePositionData, (err) => alert("Make sure Location is enabled!"), { enableHighAccuracy: true, maximumAge: 0 });
+            navigator.geolocation.getCurrentPosition(updatePositionData, (err) => alert("Enable Location!"), { enableHighAccuracy: true, maximumAge: 0 });
             if(geo.lat !== 0) dashMap.flyTo([geo.lat, geo.lng], 17, {animate: true, duration: 1});
         }
 
@@ -385,7 +370,6 @@
             const now = Date.now();
             if(now - lastAddressTime < 8000) return;
             lastAddressTime = now;
-
             try {
                 const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
                 const data = await res.json();
@@ -398,7 +382,7 @@
             } catch (e) { console.log("Geocode failed"); }
         }
 
-        // 6. Image Processing & HD Stitched Map Generation
+        // Image Processing & HD Stitched Map Generation
         document.getElementById('camera-input').addEventListener('change', processImage);
         document.getElementById('gallery-input').addEventListener('change', processImage);
 
@@ -417,174 +401,86 @@
             reader.readAsDataURL(file);
         }
 
-        // FULL HD 3x3 TILE STITCHING ENGINE
         function fetchHDMapGrid(lat, lng, style) {
             return new Promise((resolve) => {
-                const zoom = 17; // Zoom 17 ensures extremely sharp details for street/satellite
-                const n = Math.pow(2, zoom);
-                const latRad = lat * Math.PI / 180;
-                
-                const exactX = ((lng + 180) / 360) * n;
-                const exactY = (1 - (Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI)) / 2 * n;
-
-                const tileX = Math.floor(exactX);
-                const tileY = Math.floor(exactY);
-
-                // Offset of the user location inside the CENTER tile
-                const pxOffset = (exactX - tileX) * 256;
-                const pyOffset = (exactY - tileY) * 256;
-
+                const zoom = 17; const n = Math.pow(2, zoom); const latRad = lat * Math.PI / 180;
+                const exactX = ((lng + 180) / 360) * n; const exactY = (1 - (Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI)) / 2 * n;
+                const tileX = Math.floor(exactX); const tileY = Math.floor(exactY);
+                const pxOffset = (exactX - tileX) * 256; const pyOffset = (exactY - tileY) * 256;
                 const promises = [];
 
-                // Fetch a 3x3 grid of tiles around the user
                 for(let i = -1; i <= 1; i++) {
                     for(let j = -1; j <= 1; j++) {
-                        const tx = tileX + j;
-                        const ty = tileY + i;
-                        
-                        let url = "";
+                        const tx = tileX + j; const ty = tileY + i; let url = "";
                         if (style === 'satellite') url = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${zoom}/${ty}/${tx}`;
                         else if (style === 'light') url = `https://tile.openstreetmap.org/${zoom}/${tx}/${ty}.png`;
                         else url = `https://a.basemaps.cartocdn.com/dark_all/${zoom}/${tx}/${ty}.png`;
 
                         const p = new Promise((res) => {
-                            const img = new Image();
-                            img.crossOrigin = "anonymous";
-                            // The destination X and Y on the 768x768 stitched canvas
+                            const img = new Image(); img.crossOrigin = "anonymous";
                             img.onload = () => res({img, dx: (j+1)*256, dy: (i+1)*256});
-                            img.onerror = () => res(null); 
-                            img.src = url;
+                            img.onerror = () => res(null); img.src = url;
                         });
                         promises.push(p);
                     }
                 }
 
-                // Wait for all 9 HD tiles to download
                 Promise.all(promises).then(results => {
-                    const offscreen = document.createElement('canvas');
-                    offscreen.width = 768; // 3 tiles wide (256 * 3)
-                    offscreen.height = 768; // 3 tiles high
+                    const offscreen = document.createElement('canvas'); offscreen.width = 768; offscreen.height = 768;
                     const octx = offscreen.getContext('2d');
-                    
-                    results.forEach(res => {
-                        if(res && res.img) octx.drawImage(res.img, res.dx, res.dy, 256, 256);
-                    });
-
-                    // The exact pixel of the user on this massive 768x768 stitched image
-                    const userPx = 256 + pxOffset;
-                    const userPy = 256 + pyOffset;
-
-                    resolve({ canvas: offscreen, userPx, userPy });
+                    results.forEach(res => { if(res && res.img) octx.drawImage(res.img, res.dx, res.dy, 256, 256); });
+                    resolve({ canvas: offscreen, userPx: 256 + pxOffset, userPy: 256 + pyOffset });
                 });
             });
         }
 
         async function createMapStamp(photoImg) {
-            const canvas = document.getElementById('canvas');
-            const ctx = canvas.getContext('2d');
+            const canvas = document.getElementById('canvas'); const ctx = canvas.getContext('2d');
+            canvas.width = photoImg.width; canvas.height = photoImg.height; ctx.drawImage(photoImg, 0, 0, canvas.width, canvas.height);
 
-            canvas.width = photoImg.width; canvas.height = photoImg.height;
-            ctx.drawImage(photoImg, 0, 0, canvas.width, canvas.height);
-
-            const scale = canvas.width / 1080;
-            const pad = 40 * scale; const stampH = 320 * scale;
+            const scale = canvas.width / 1080; const pad = 40 * scale; const stampH = 320 * scale;
             const stampW = canvas.width - (pad * 2); const stampY = canvas.height - stampH - pad;
 
-            // Base Stamp Background
-            ctx.fillStyle = "rgba(15, 17, 21, 0.85)"; 
-            ctx.beginPath(); ctx.roundRect(pad, stampY, stampW, stampH, 20 * scale); ctx.fill();
+            ctx.fillStyle = "rgba(15, 17, 21, 0.85)"; ctx.beginPath(); ctx.roundRect(pad, stampY, stampW, stampH, 20 * scale); ctx.fill();
+            ctx.fillStyle = "#00e5ff"; ctx.beginPath(); ctx.roundRect(pad, stampY, 15 * scale, stampH, [20*scale, 0, 0, 20*scale]); ctx.fill();
 
-            // Cyan Border Line
-            ctx.fillStyle = "#00e5ff";
-            ctx.beginPath(); ctx.roundRect(pad, stampY, 15 * scale, stampH, [20*scale, 0, 0, 20*scale]); ctx.fill();
-
-            // Wait for HD Map Stitching Engine
             const mapData = await fetchHDMapGrid(geo.lat, geo.lng, currentMapStyle);
             
-            // Text Drawing
             const textX = pad + 40 * scale; ctx.fillStyle = "#ffffff"; ctx.textBaseline = "top";
-            
-            ctx.font = `bold ${50 * scale}px 'Inter', sans-serif`;
-            ctx.fillText(geo.city.toUpperCase(), textX, stampY + 30 * scale);
-            
-            ctx.fillStyle = "#8b95a5"; ctx.font = `500 ${24 * scale}px 'Inter', sans-serif`;
-            ctx.fillText(geo.address.substring(0, 45) + "...", textX, stampY + 90 * scale);
-
+            ctx.font = `bold ${50 * scale}px 'Inter', sans-serif`; ctx.fillText(geo.city.toUpperCase(), textX, stampY + 30 * scale);
+            ctx.fillStyle = "#8b95a5"; ctx.font = `500 ${24 * scale}px 'Inter', sans-serif`; ctx.fillText(geo.address.substring(0, 45) + "...", textX, stampY + 90 * scale);
             ctx.fillStyle = "#ffffff"; ctx.font = `bold ${26 * scale}px 'Inter', monospace`;
-            const dateStr = new Date().toLocaleDateString('en-GB');
-            const timeStr = new Date().toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'});
-
+            
+            const dateStr = new Date().toLocaleDateString('en-GB'); const timeStr = new Date().toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'});
             const row1 = stampY + 160 * scale; const row2 = stampY + 210 * scale; const col2 = textX + 300 * scale;
-            ctx.fillText(`LAT: ${geo.lat.toFixed(6)}`, textX, row1);
-            ctx.fillText(`LNG: ${geo.lng.toFixed(6)}`, textX, row2);
-            ctx.fillText(`DATE: ${dateStr}`, col2, row1);
-            ctx.fillText(`TIME: ${timeStr}`, col2, row2);
-
+            
+            ctx.fillText(`LAT: ${geo.lat.toFixed(6)}`, textX, row1); ctx.fillText(`LNG: ${geo.lng.toFixed(6)}`, textX, row2);
+            ctx.fillText(`DATE: ${dateStr}`, col2, row1); ctx.fillText(`TIME: ${timeStr}`, col2, row2);
             ctx.fillStyle = "#00e5ff"; ctx.font = `bold ${20 * scale}px 'Inter', sans-serif`;
             ctx.fillText(`ALT: ${geo.alt.toFixed(1)}m   |   ACCURACY: ±${geo.acc.toFixed(0)}m`, textX, stampY + 265 * scale);
 
-            // HD Map Drawing Logic
-            const mapSize = stampH - (40 * scale); 
-            const mapX = pad + stampW - mapSize - (20 * scale); 
-            const mapY = stampY + (20 * scale);
+            const mapSize = stampH - (40 * scale); const mapX = pad + stampW - mapSize - (20 * scale); const mapY = stampY + (20 * scale);
 
-            ctx.save(); 
-            ctx.beginPath(); 
-            ctx.roundRect(mapX, mapY, mapSize, mapSize, 15 * scale); 
-            ctx.clip(); // Mask the drawing area to the square box
-
-            // Calculate scaling to ensure the map is zoomed in and HD
-            const drawScale = mapSize / 400; // This essentially magnifies the HD canvas to fit nicely
-            
-            const scaledUserPx = mapData.userPx * drawScale;
-            const scaledUserPy = mapData.userPy * drawScale;
-            
-            const boxCenterX = mapX + mapSize / 2;
-            const boxCenterY = mapY + mapSize / 2;
-            
-            // Translate drawing so the user location is perfectly in the center of the mask
-            const drawX = boxCenterX - scaledUserPx;
-            const drawY = boxCenterY - scaledUserPy;
-
-            // Draw the stitched 768x768 HD map
+            ctx.save(); ctx.beginPath(); ctx.roundRect(mapX, mapY, mapSize, mapSize, 15 * scale); ctx.clip(); 
+            const drawScale = mapSize / 400; 
+            const drawX = (mapX + mapSize / 2) - (mapData.userPx * drawScale); const drawY = (mapY + mapSize / 2) - (mapData.userPy * drawScale);
             ctx.drawImage(mapData.canvas, drawX, drawY, 768 * drawScale, 768 * drawScale);
 
-            // Draw Centered Pin
             const pinColor = (currentMapStyle === 'dark') ? "#00e5ff" : "#ff2a5f"; 
+            ctx.beginPath(); ctx.arc(mapX + mapSize / 2, mapY + mapSize / 2, 14 * scale, 0, 2 * Math.PI); ctx.fillStyle = "#ffffff"; ctx.fill();
+            ctx.beginPath(); ctx.arc(mapX + mapSize / 2, mapY + mapSize / 2, 10 * scale, 0, 2 * Math.PI); ctx.fillStyle = pinColor; ctx.fill();
+            ctx.restore(); 
 
-            ctx.beginPath(); ctx.arc(boxCenterX, boxCenterY, 14 * scale, 0, 2 * Math.PI); ctx.fillStyle = "#ffffff"; ctx.fill();
-            ctx.beginPath(); ctx.arc(boxCenterX, boxCenterY, 10 * scale, 0, 2 * Math.PI); ctx.fillStyle = pinColor; ctx.fill();
-            ctx.restore(); // Remove clipping
+            ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 4 * scale; ctx.beginPath(); ctx.roundRect(mapX, mapY, mapSize, mapSize, 15 * scale); ctx.stroke();
 
-            // Map Border
-            ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 4 * scale;
-            ctx.beginPath(); ctx.roundRect(mapX, mapY, mapSize, mapSize, 15 * scale); ctx.stroke();
-
-            // Output Result
             document.getElementById('result-img').src = canvas.toDataURL('image/jpeg', 0.95);
             document.getElementById('loading-overlay').style.display = 'none';
             showPreview();
         }
 
-        function showPreview() {
-            document.getElementById('screen-home').classList.remove('active');
-            document.getElementById('screen-preview').classList.add('active');
-            document.getElementById('btn-back').style.display = 'block';
-        }
-
-        function showHome() {
-            document.getElementById('screen-preview').classList.remove('active');
-            document.getElementById('screen-home').classList.add('active');
-            document.getElementById('btn-back').style.display = 'none';
-            document.getElementById('camera-input').value = ""; document.getElementById('gallery-input').value = "";
-        }
-
-        function downloadPhoto() {
-            const link = document.createElement('a'); link.download = `GeoLens_HD_${Date.now()}.jpg`;
-            link.href = document.getElementById('canvas').toDataURL('image/jpeg', 1.0); link.click();
-        }
-
-        window.onload = () => { initDashboardMap(); initFastGPS(); };
+        function showPreview() { document.getElementById('screen-home').classList.remove('active'); document.getElementById('screen-preview').classList.add('active'); document.getElementById('btn-back').style.display = 'block'; }
+        function showHome() { document.getElementById('screen-preview').classList.remove('active'); document.getElementById('screen-home').classList.add('active'); document.getElementById('btn-back').style.display = 'none'; document.getElementById('camera-input').value = ""; document.getElementById('gallery-input').value = ""; }
+        function downloadPhoto() { const link = document.createElement('a'); link.download = `GeoLens_Pro_${Date.now()}.jpg`; link.href = document.getElementById('canvas').toDataURL('image/jpeg', 1.0); link.click(); }
     </script>
 </body>
 </html>
