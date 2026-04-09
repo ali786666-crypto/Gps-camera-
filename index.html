@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GeoLens Pro | Premium Geotag</title>
+    <title>GeoLens Pro | HD Map & Note Engine</title>
     
-    <!-- Modern Icons & Leaflet Map CSS -->
+    <!-- Modern Icons, Leaflet Map CSS & Premium Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Courier+Prime:wght@400;700&family=Inter:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap');
-
         :root {
             --bg-dark: #000000;
             --card-bg: #111318;
@@ -25,99 +24,40 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent;}
 
         body {
-            background-color: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            color: var(--text-main);
+            background-color: #000; display: flex; justify-content: center;
+            align-items: center; min-height: 100vh; color: var(--text-main);
         }
 
         .app-container {
-            width: 100%;
-            max-width: 430px;
-            height: 100vh;
-            background-color: var(--bg-dark);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            position: relative;
+            width: 100%; max-width: 430px; height: 100vh;
+            background-color: var(--bg-dark); display: flex; flex-direction: column;
+            overflow: hidden; position: relative;
         }
 
         @media (min-width: 431px) {
-            .app-container {
-                height: 90vh;
-                border-radius: 40px;
-                border: 8px solid #222;
-                box-shadow: 0 0 60px rgba(0,229,255,0.15);
-            }
+            .app-container { height: 90vh; border-radius: 40px; border: 8px solid #222; box-shadow: 0 0 60px rgba(0,229,255,0.15); }
         }
 
         /* --- PREMIUM STARTUP INTRO --- */
         #splash-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: #05070a; z-index: 9999;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: #05070a; z-index: 9999; display: flex; flex-direction: column; 
+            justify-content: center; align-items: center;
             transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.8, 0, 0.2, 1);
         }
 
-        #splash-screen.hide {
-            opacity: 0;
-            transform: scale(1.1);
-            pointer-events: none;
-        }
+        #splash-screen.hide { opacity: 0; transform: scale(1.1); pointer-events: none; }
 
-        .splash-logo-box {
-            position: relative; width: 120px; height: 120px;
-            display: flex; justify-content: center; align-items: center;
-            margin-bottom: 30px;
-        }
-
-        .splash-ring {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            border: 2px dashed rgba(255,255,255,0.2);
-            border-top: 2px solid var(--primary);
-            border-radius: 50%;
-            animation: spinRing 2s linear infinite;
-        }
-        
-        .splash-ring-inner {
-            position: absolute; top: 15%; left: 15%; width: 70%; height: 70%;
-            border: 1px solid rgba(0, 229, 255, 0.3);
-            border-bottom: 2px solid var(--primary);
-            border-radius: 50%;
-            animation: spinRingReverse 3s linear infinite;
-        }
-
-        .splash-icon {
-            font-size: 2.5rem; color: var(--primary);
-            text-shadow: 0 0 20px var(--primary-glow);
-            animation: pulseIcon 2s infinite;
-        }
-
-        .splash-title {
-            font-size: 1.8rem; font-weight: 700; letter-spacing: 2px;
-            color: #fff; margin-bottom: 10px;
-            animation: slideUp 1s ease;
-        }
+        .splash-logo-box { position: relative; width: 120px; height: 120px; display: flex; justify-content: center; align-items: center; margin-bottom: 30px; }
+        .splash-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 2px dashed rgba(255,255,255,0.2); border-top: 2px solid var(--primary); border-radius: 50%; animation: spinRing 2s linear infinite; }
+        .splash-ring-inner { position: absolute; top: 15%; left: 15%; width: 70%; height: 70%; border: 1px solid rgba(0, 229, 255, 0.3); border-bottom: 2px solid var(--primary); border-radius: 50%; animation: spinRingReverse 3s linear infinite; }
+        .splash-icon { font-size: 2.5rem; color: var(--primary); text-shadow: 0 0 20px var(--primary-glow); animation: pulseIcon 2s infinite; }
+        .splash-title { font-size: 1.8rem; font-weight: 700; letter-spacing: 2px; color: #fff; margin-bottom: 10px; animation: slideUp 1s ease; }
         .splash-title span { color: var(--primary); }
-
-        .splash-subtitle {
-            font-size: 0.85rem; color: var(--text-sub); letter-spacing: 1px; text-transform: uppercase;
-            animation: slideUp 1.2s ease;
-        }
-
-        .splash-loader-bar {
-            width: 150px; height: 3px; background: rgba(255,255,255,0.1);
-            border-radius: 3px; margin-top: 40px; overflow: hidden;
-            position: relative;
-        }
-        .splash-progress {
-            position: absolute; top: 0; left: 0; height: 100%;
-            background: var(--primary); width: 0%;
-            box-shadow: 0 0 10px var(--primary);
-            animation: loadProgress 3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        }
+        .splash-subtitle { font-size: 0.85rem; color: var(--text-sub); letter-spacing: 1px; text-transform: uppercase; animation: slideUp 1.2s ease; }
+        
+        .splash-loader-bar { width: 150px; height: 3px; background: rgba(255,255,255,0.1); border-radius: 3px; margin-top: 40px; overflow: hidden; position: relative; }
+        .splash-progress { position: absolute; top: 0; left: 0; height: 100%; background: var(--primary); width: 0%; box-shadow: 0 0 10px var(--primary); animation: loadProgress 3s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
 
         @keyframes spinRing { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes spinRingReverse { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
@@ -132,40 +72,48 @@
 
         .screen { flex: 1; display: none; flex-direction: column; padding: 0 20px 20px 20px; animation: fadeIn 0.4s ease; overflow-y: auto; }
         .screen.active { display: flex; }
-
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .live-map-wrapper {
-            width: 100%; height: 180px; border-radius: 20px; overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.1); margin-bottom: 15px; position: relative; background: #111;
-        }
+        /* TABS (GPS vs NOTE) */
+        .mode-tabs { display: flex; background: var(--card-bg); border-radius: 12px; padding: 5px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); }
+        .mode-tab { flex: 1; text-align: center; padding: 12px 0; font-size: 0.85rem; font-weight: 600; color: var(--text-sub); border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        .mode-tab.active { background: var(--primary); color: #000; box-shadow: 0 4px 15px var(--primary-glow); }
+
+        /* PANELS */
+        .panel { display: none; flex-direction: column; animation: fadeIn 0.3s ease; }
+        .panel.active { display: flex; }
+
+        /* GPS PANEL STYLES */
+        .live-map-wrapper { width: 100%; height: 160px; border-radius: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 15px; position: relative; background: #111; }
         #dashboard-map { width: 100%; height: 100%; }
-        
         .map-badge { position: absolute; top: 10px; left: 10px; z-index: 1000; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); padding: 5px 10px; border-radius: 12px; font-size: 0.75rem; color: var(--primary); font-weight: 600; }
-        .btn-recenter { position: absolute; bottom: 10px; right: 10px; z-index: 1000; width: 40px; height: 40px; border-radius: 50%; background: rgba(17, 19, 24, 0.9); backdrop-filter: blur(5px); color: var(--primary); border: 1px solid rgba(0,229,255,0.3); display: flex; justify-content: center; align-items: center; font-size: 1.2rem; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.5); transition: 0.2s; }
-        .btn-recenter:active { transform: scale(0.9); background: var(--primary); color: #000; }
-
-        .location-card { background: var(--card-bg); border-radius: 20px; padding: 20px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05); margin-bottom: 15px; }
-        .date-time { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--primary); font-weight: 600; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .city { font-size: 1.4rem; font-weight: 700; margin-bottom: 5px; }
-        .address { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 15px; line-height: 1.4; }
-        .coords { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .coord-box p { font-size: 0.7rem; color: var(--text-sub); text-transform: uppercase; }
-        .coord-box h4 { font-size: 0.95rem; margin-top: 3px; font-family: monospace; }
-        .acc-good { color: var(--primary); } .acc-bad { color: var(--warning); }
-
-        .map-selector { margin-bottom: 15px; }
+        .btn-recenter { position: absolute; bottom: 10px; right: 10px; z-index: 1000; width: 40px; height: 40px; border-radius: 50%; background: rgba(17, 19, 24, 0.9); color: var(--primary); border: 1px solid rgba(0,229,255,0.3); display: flex; justify-content: center; align-items: center; cursor: pointer; }
+        .location-card { background: var(--card-bg); border-radius: 20px; padding: 15px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05); margin-bottom: 15px; }
+        .city { font-size: 1.2rem; font-weight: 700; margin-bottom: 5px; }
+        .address { font-size: 0.8rem; color: var(--text-sub); margin-bottom: 10px; line-height: 1.4; }
         .map-selector p { font-size: 0.8rem; color: var(--text-sub); margin-bottom: 8px; font-weight: 600; }
         .map-options { display: flex; gap: 8px; background: rgba(255,255,255,0.05); padding: 5px; border-radius: 12px; }
         .map-btn { flex: 1; background: transparent; color: var(--text-sub); border: none; padding: 10px 0; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: 0.3s; }
-        .map-btn.active { background: var(--card-bg); color: var(--text-main); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .map-btn.active { background: #222530; color: var(--text-main); }
 
-        .camera-controls { margin-top: auto; padding: 10px 0 20px 0; display: flex; align-items: center; justify-content: center; gap: 40px; background: var(--bg-dark); }
-        .btn-gallery { width: 50px; height: 50px; border-radius: 50%; background: var(--card-bg); color: var(--text-main); font-size: 1.2rem; display: flex; justify-content: center; align-items: center; cursor: pointer; border: none; transition: 0.2s; }
-        .btn-gallery:active { transform: scale(0.9); }
+        /* NOTE PANEL STYLES */
+        .note-card { background: var(--card-bg); border-radius: 20px; padding: 20px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05); text-align: center; }
+        .note-card i { font-size: 3rem; color: var(--primary); margin-bottom: 15px; opacity: 0.8; }
+        .note-card h3 { font-size: 1.2rem; margin-bottom: 10px; }
+        .note-card p { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 20px; }
+        
+        .note-input { width: 100%; background: #000; border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 15px; border-radius: 12px; font-size: 1rem; margin-bottom: 15px; outline: none; transition: border 0.3s; }
+        .note-input:focus { border-color: var(--primary); }
+        
+        .font-selector { width: 100%; background: #000; border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 15px; border-radius: 12px; font-size: 1rem; outline: none; appearance: none; cursor: pointer; }
+
+        /* CAMERA BUTTONS */
+        .camera-controls { margin-top: auto; padding: 15px 0 20px 0; display: flex; align-items: center; justify-content: center; gap: 40px; background: var(--bg-dark); }
+        .btn-gallery { width: 50px; height: 50px; border-radius: 50%; background: var(--card-bg); color: var(--text-main); font-size: 1.2rem; display: flex; justify-content: center; align-items: center; cursor: pointer; border: none; }
         .btn-shutter { width: 80px; height: 80px; border-radius: 50%; background: #ffffff; border: 5px solid var(--bg-dark); box-shadow: 0 0 0 4px #ffffff, 0 5px 20px var(--primary-glow); cursor: pointer; display: flex; justify-content: center; align-items: center; color: #000; transition: transform 0.1s; }
         .btn-shutter:active { transform: scale(0.9); background: #ddd; }
 
+        /* PREVIEW SCREEN */
         .preview-box { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
         #result-img { max-width: 100%; max-height: 70vh; border-radius: 12px; object-fit: contain; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .btn-save { width: 100%; padding: 18px; border-radius: 16px; background: var(--primary); color: #000; font-size: 1.05rem; font-weight: 700; border: none; cursor: pointer; }
@@ -187,10 +135,9 @@
                 <i class="fa-solid fa-crosshairs splash-icon"></i>
             </div>
             <h1 class="splash-title">GeoLens <span>Pro</span></h1>
-            <p class="splash-subtitle">Acquiring Satellites</p>
+            <p class="splash-subtitle">Acquiring Data</p>
             <div class="splash-loader-bar"><div class="splash-progress"></div></div>
         </div>
-        <!-- END SPLASH SCREEN -->
 
         <header>
             <div class="logo"><i class="fa-solid fa-crosshairs"></i> GeoLens Pro</div>
@@ -202,39 +149,56 @@
         <!-- DASHBOARD -->
         <div id="screen-home" class="screen active">
             
-            <div class="live-map-wrapper">
-                <div class="map-badge" id="map-status"><i class="fa-solid fa-spinner fa-spin"></i> Getting GPS...</div>
-                <div id="dashboard-map"></div>
-                <button class="btn-recenter" onclick="forceRecenterGPS()" title="Find My Location">
-                    <i class="fa-solid fa-location-crosshairs"></i>
-                </button>
-            </div>
-
-            <div class="location-card">
-                <div class="date-time">
-                    <span id="live-date">--/--/----</span>
-                    <span id="live-time">--:--:--</span>
+            <!-- MODE TABS -->
+            <div class="mode-tabs">
+                <div class="mode-tab active" onclick="switchMode('gps', this)">
+                    <i class="fa-solid fa-map-location-dot"></i> GPS Map
                 </div>
-                <h2 class="city" id="city-text">Locating...</h2>
-                <p class="address" id="address-text">Fetching mobile GPS details...</p>
-
-                <div class="coords">
-                    <div class="coord-box"><p>Latitude</p><h4 id="lat-text">--.----</h4></div>
-                    <div class="coord-box"><p>Longitude</p><h4 id="lng-text">--.----</h4></div>
-                    <div class="coord-box"><p>Altitude</p><h4 id="alt-text">-- m</h4></div>
-                    <div class="coord-box"><p>Accuracy</p><h4 id="acc-text" class="acc-bad">± -- m</h4></div>
+                <div class="mode-tab" onclick="switchMode('note', this)">
+                    <i class="fa-solid fa-calendar-day"></i> Date & Note
                 </div>
             </div>
 
-            <div class="map-selector">
-                <p>Choose Stamp Map Style:</p>
-                <div class="map-options">
-                    <button class="map-btn active" data-map="satellite" onclick="selectMap(this)">Satellite</button>
-                    <button class="map-btn" data-map="light" onclick="selectMap(this)">Standard</button>
-                    <button class="map-btn" data-map="dark" onclick="selectMap(this)">Dark</button>
+            <!-- PANEL 1: GPS & MAP -->
+            <div id="panel-gps" class="panel active">
+                <div class="live-map-wrapper">
+                    <div class="map-badge" id="map-status"><i class="fa-solid fa-spinner fa-spin"></i> Getting GPS...</div>
+                    <div id="dashboard-map"></div>
+                    <button class="btn-recenter" onclick="forceRecenterGPS()"><i class="fa-solid fa-location-crosshairs"></i></button>
+                </div>
+                <div class="location-card">
+                    <h2 class="city" id="city-text">Locating...</h2>
+                    <p class="address" id="address-text">Fetching mobile GPS details...</p>
+                </div>
+                <div class="map-selector">
+                    <p>Stamp Map Style:</p>
+                    <div class="map-options">
+                        <button class="map-btn active" data-map="satellite" onclick="selectMap(this)">Satellite</button>
+                        <button class="map-btn" data-map="light" onclick="selectMap(this)">Standard</button>
+                        <button class="map-btn" data-map="dark" onclick="selectMap(this)">Dark</button>
+                    </div>
                 </div>
             </div>
 
+            <!-- PANEL 2: DATE & NOTE -->
+            <div id="panel-note" class="panel">
+                <div class="note-card">
+                    <i class="fa-solid fa-quote-left"></i>
+                    <h3>Custom Note Stamp</h3>
+                    <p>Add Date, Time, and an optional custom text note to your image bottom.</p>
+                    
+                    <input type="text" id="custom-note" class="note-input" placeholder="Type a note (Optional)..." maxlength="50">
+                    
+                    <select id="note-font" class="font-selector">
+                        <option value="'Inter', sans-serif">Aa Modern (Default)</option>
+                        <option value="'Playfair Display', serif">Aa Classic Serif</option>
+                        <option value="'Courier Prime', monospace">Aa Typewriter</option>
+                        <option value="'Caveat', cursive">Aa Handwritten Note</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- CAMERA CONTROLS -->
             <div class="camera-controls">
                 <button class="btn-gallery" onclick="document.getElementById('gallery-input').click()">
                     <i class="fa-solid fa-image"></i>
@@ -262,7 +226,7 @@
         <canvas id="canvas"></canvas>
         <div id="loading-overlay">
             <div class="spinner"></div>
-            <p id="loading-text" style="margin-top: 15px; font-weight: 600;">Stitching HD Map...</p>
+            <p id="loading-text" style="margin-top: 15px; font-weight: 600;">Processing Image...</p>
         </div>
     </div>
 
@@ -272,6 +236,7 @@
         let geo = { lat: 0, lng: 0, alt: 0, acc: 9999, city: "Unknown", address: "Details Unavailable" };
         let dashMap, dashMarker, currentTileLayer;
         let currentMapStyle = 'satellite';
+        let currentMode = 'gps'; // 'gps' or 'note'
 
         const mapProviders = {
             satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
@@ -281,28 +246,26 @@
 
         // --- INIT & SPLASH LOGIC ---
         window.onload = () => { 
-            // 1. Start loading map & GPS silently in the background
             initDashboardMap(); 
             initFastGPS(); 
-            
-            // 2. Wait 3.5 Seconds for cinematic intro, then fade out
-            setTimeout(() => {
-                document.getElementById('splash-screen').classList.add('hide');
-            }, 3500);
+            setTimeout(() => { document.getElementById('splash-screen').classList.add('hide'); }, 3500);
         };
 
-        // Live Clock
-        setInterval(() => {
-            const now = new Date();
-            document.getElementById('live-date').innerText = now.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'});
-            document.getElementById('live-time').innerText = now.toLocaleTimeString('en-US', {hour12:true, hour:'2-digit', minute:'2-digit', second:'2-digit'});
-        }, 1000);
+        // --- TAB SWITCHER LOGIC ---
+        function switchMode(mode, element) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+            element.classList.add('active');
 
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(`panel-${mode}`).classList.add('active');
+        }
+
+        // --- GPS & MAP LOGIC ---
         function selectMap(btn) {
             document.querySelectorAll('.map-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentMapStyle = btn.getAttribute('data-map');
-            
             if(currentTileLayer) dashMap.removeLayer(currentTileLayer);
             currentTileLayer = L.tileLayer(mapProviders[currentMapStyle], {maxZoom: 19}).addTo(dashMap);
             updateMarkerColor();
@@ -311,96 +274,122 @@
         function updateMarkerColor() {
             if(!dashMarker) return;
             const pinColor = (currentMapStyle === 'dark') ? '#00e5ff' : '#ff2a5f';
-            const newIcon = L.divIcon({
-                html: `<div style="width:16px; height:16px; background:${pinColor}; border-radius:50%; box-shadow: 0 0 15px ${pinColor}; border: 2px solid #fff;"></div>`,
-                className: '', iconSize: [16, 16], iconAnchor: [8, 8]
-            });
-            dashMarker.setIcon(newIcon);
+            dashMarker.setIcon(L.divIcon({ html: `<div style="width:16px; height:16px; background:${pinColor}; border-radius:50%; box-shadow: 0 0 15px ${pinColor}; border: 2px solid #fff;"></div>`, className: '', iconSize: [16, 16], iconAnchor: [8, 8] }));
         }
 
         function initDashboardMap() {
             dashMap = L.map('dashboard-map', {zoomControl: false, attributionControl: false}).setView([0, 0], 2);
             currentTileLayer = L.tileLayer(mapProviders[currentMapStyle], {maxZoom: 19}).addTo(dashMap);
-            
-            const gpsDot = L.divIcon({
-                html: `<div style="width:16px; height:16px; background:#ff2a5f; border-radius:50%; box-shadow: 0 0 15px #ff2a5f; border: 2px solid #fff;"></div>`,
-                className: '', iconSize: [16, 16], iconAnchor: [8, 8]
-            });
-            dashMarker = L.marker([0, 0], {icon: gpsDot}).addTo(dashMap);
+            dashMarker = L.marker([0, 0], {icon: L.divIcon({ html: `<div style="width:16px; height:16px; background:#ff2a5f; border-radius:50%; box-shadow: 0 0 15px #ff2a5f; border: 2px solid #fff;"></div>`, className: '', iconSize: [16, 16], iconAnchor: [8, 8] })}).addTo(dashMap);
         }
 
         function updatePositionData(pos) {
-            geo.lat = pos.coords.latitude; geo.lng = pos.coords.longitude;
-            geo.alt = pos.coords.altitude || 0; geo.acc = pos.coords.accuracy;
-
-            document.getElementById('lat-text').innerText = geo.lat.toFixed(6);
-            document.getElementById('lng-text').innerText = geo.lng.toFixed(6);
-            document.getElementById('alt-text').innerText = geo.alt ? `${geo.alt.toFixed(1)} m` : 'Sea Level';
-            
-            const accUI = document.getElementById('acc-text');
-            accUI.innerText = `± ${geo.acc.toFixed(0)} m`;
-
-            if(geo.acc < 50) {
-                accUI.className = 'acc-good';
-                document.getElementById('map-status').innerHTML = '<i class="fa-solid fa-check"></i> Precise GPS Lock';
-            } else {
-                accUI.className = 'acc-bad';
-                document.getElementById('map-status').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Refining...';
-            }
-
-            dashMap.setView([geo.lat, geo.lng], 16);
-            dashMarker.setLatLng([geo.lat, geo.lng]);
+            geo.lat = pos.coords.latitude; geo.lng = pos.coords.longitude; geo.acc = pos.coords.accuracy;
+            document.getElementById('map-status').innerHTML = geo.acc < 50 ? '<i class="fa-solid fa-check"></i> Precise Lock' : '<i class="fa-solid fa-spinner fa-spin"></i> Refining...';
+            dashMap.setView([geo.lat, geo.lng], 16); dashMarker.setLatLng([geo.lat, geo.lng]);
             fetchAddress(geo.lat, geo.lng);
         }
 
-        function initFastGPS() {
-            if (navigator.geolocation) {
-                navigator.geolocation.watchPosition(updatePositionData, (err) => console.log(err), { enableHighAccuracy: true, maximumAge: 0 });
-            }
-        }
-
-        function forceRecenterGPS() {
-            document.getElementById('map-status').innerHTML = '<i class="fa-solid fa-satellite-dish"></i> Fetching...';
-            navigator.geolocation.getCurrentPosition(updatePositionData, (err) => alert("Enable Location!"), { enableHighAccuracy: true, maximumAge: 0 });
-            if(geo.lat !== 0) dashMap.flyTo([geo.lat, geo.lng], 17, {animate: true, duration: 1});
-        }
+        function initFastGPS() { if (navigator.geolocation) navigator.geolocation.watchPosition(updatePositionData, (err)=>{}, { enableHighAccuracy: true, maximumAge: 0 }); }
+        function forceRecenterGPS() { navigator.geolocation.getCurrentPosition(updatePositionData, (err)=>{}, { enableHighAccuracy: true, maximumAge: 0 }); if(geo.lat !== 0) dashMap.flyTo([geo.lat, geo.lng], 17); }
 
         let lastAddressTime = 0;
         async function fetchAddress(lat, lng) {
-            const now = Date.now();
-            if(now - lastAddressTime < 8000) return;
-            lastAddressTime = now;
+            const now = Date.now(); if(now - lastAddressTime < 8000) return; lastAddressTime = now;
             try {
                 const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
                 const data = await res.json();
                 if (data && data.address) {
                     geo.city = data.address.city || data.address.town || data.address.village || "Local Area";
-                    geo.address = `${data.address.road || ''}, ${data.address.state || ''}, ${data.address.country || ''}`.replace(/^, /, '');
-                    document.getElementById('city-text').innerText = geo.city;
-                    document.getElementById('address-text').innerText = geo.address;
+                    geo.address = `${data.address.road || ''}, ${data.address.country || ''}`.replace(/^, /, '');
+                    document.getElementById('city-text').innerText = geo.city; document.getElementById('address-text').innerText = geo.address;
                 }
-            } catch (e) { console.log("Geocode failed"); }
+            } catch (e) {}
         }
 
-        // Image Processing & HD Stitched Map Generation
+        // --- IMAGE PROCESSING HUB ---
         document.getElementById('camera-input').addEventListener('change', processImage);
         document.getElementById('gallery-input').addEventListener('change', processImage);
 
         function processImage(e) {
             const file = e.target.files[0];
             if (!file) return;
+            
             document.getElementById('loading-overlay').style.display = 'flex';
-            document.getElementById('loading-text').innerText = "Stitching HD Map...";
+            document.getElementById('loading-text').innerText = currentMode === 'gps' ? "Stitching HD Map..." : "Applying Note Stamp...";
             
             const reader = new FileReader();
             reader.onload = (event) => {
                 const img = new Image();
-                img.onload = () => createMapStamp(img);
+                img.onload = () => {
+                    if(currentMode === 'gps') createGPSMapStamp(img);
+                    else createNoteStamp(img);
+                };
                 img.src = event.target.result;
             }
             reader.readAsDataURL(file);
         }
 
+        // --- 1. THE NEW DATE & NOTE STAMP ---
+        function createNoteStamp(photoImg) {
+            const canvas = document.getElementById('canvas'); const ctx = canvas.getContext('2d');
+            canvas.width = photoImg.width; canvas.height = photoImg.height; 
+            ctx.drawImage(photoImg, 0, 0, canvas.width, canvas.height);
+
+            const userNote = document.getElementById('custom-note').value.trim();
+            const userFont = document.getElementById('note-font').value;
+            
+            const scale = canvas.width / 1080; 
+            const pad = 40 * scale; 
+            
+            // If no note, box is small. If note, box is bigger.
+            const stampH = userNote ? (240 * scale) : (140 * scale);
+            const stampW = canvas.width - (pad * 2); 
+            const stampY = canvas.height - stampH - pad;
+
+            // Draw Base Glass Card
+            ctx.fillStyle = "rgba(15, 17, 21, 0.85)"; 
+            ctx.beginPath(); ctx.roundRect(pad, stampY, stampW, stampH, 20 * scale); ctx.fill();
+
+            // Draw Cyan Accent Line
+            ctx.fillStyle = "#00e5ff"; 
+            ctx.beginPath(); ctx.roundRect(pad, stampY, 15 * scale, stampH, [20*scale, 0, 0, 20*scale]); ctx.fill();
+
+            // Date & Time Strings
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-US', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+            const timeStr = now.toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit', hour12:true});
+
+            const textStartX = pad + 50 * scale;
+
+            if(userNote) {
+                // Draw Note (Large Custom Font)
+                ctx.fillStyle = "#ffffff"; 
+                ctx.textBaseline = "top";
+                
+                // Adjust font size specifically for handwritten font to make it readable
+                let fontSize = userFont.includes('Caveat') ? 70 : 55;
+                ctx.font = `400 ${fontSize * scale}px ${userFont}`;
+                ctx.fillText(`"${userNote}"`, textStartX, stampY + 45 * scale, stampW - (80 * scale));
+
+                // Draw Date & Time smaller below the note
+                ctx.fillStyle = "#00e5ff";
+                ctx.font = `600 ${24 * scale}px 'Inter', sans-serif`;
+                ctx.fillText(`${dateStr}  •  ${timeStr}`, textStartX, stampY + stampH - (60 * scale));
+            } else {
+                // No Note, just big beautiful Date & Time centered
+                ctx.fillStyle = "#ffffff"; ctx.textBaseline = "middle";
+                ctx.font = `700 ${45 * scale}px 'Inter', sans-serif`;
+                ctx.fillText(dateStr, textStartX, stampY + (stampH / 2) - (15*scale));
+                
+                ctx.fillStyle = "#00e5ff"; ctx.font = `600 ${30 * scale}px 'Inter', monospace`;
+                ctx.fillText(timeStr, textStartX, stampY + (stampH / 2) + (30*scale));
+            }
+
+            finalizePreview();
+        }
+
+        // --- 2. THE HD GPS MAP STAMP (From Previous Step) ---
         function fetchHDMapGrid(lat, lng, style) {
             return new Promise((resolve) => {
                 const zoom = 17; const n = Math.pow(2, zoom); const latRad = lat * Math.PI / 180;
@@ -434,7 +423,7 @@
             });
         }
 
-        async function createMapStamp(photoImg) {
+        async function createGPSMapStamp(photoImg) {
             const canvas = document.getElementById('canvas'); const ctx = canvas.getContext('2d');
             canvas.width = photoImg.width; canvas.height = photoImg.height; ctx.drawImage(photoImg, 0, 0, canvas.width, canvas.height);
 
@@ -473,14 +462,32 @@
 
             ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 4 * scale; ctx.beginPath(); ctx.roundRect(mapX, mapY, mapSize, mapSize, 15 * scale); ctx.stroke();
 
-            document.getElementById('result-img').src = canvas.toDataURL('image/jpeg', 0.95);
-            document.getElementById('loading-overlay').style.display = 'none';
-            showPreview();
+            finalizePreview();
         }
 
-        function showPreview() { document.getElementById('screen-home').classList.remove('active'); document.getElementById('screen-preview').classList.add('active'); document.getElementById('btn-back').style.display = 'block'; }
-        function showHome() { document.getElementById('screen-preview').classList.remove('active'); document.getElementById('screen-home').classList.add('active'); document.getElementById('btn-back').style.display = 'none'; document.getElementById('camera-input').value = ""; document.getElementById('gallery-input').value = ""; }
-        function downloadPhoto() { const link = document.createElement('a'); link.download = `GeoLens_Pro_${Date.now()}.jpg`; link.href = document.getElementById('canvas').toDataURL('image/jpeg', 1.0); link.click(); }
+        // --- NAVIGATION & SAVING ---
+        function finalizePreview() {
+            document.getElementById('result-img').src = document.getElementById('canvas').toDataURL('image/jpeg', 0.95);
+            document.getElementById('loading-overlay').style.display = 'none';
+            document.getElementById('screen-home').classList.remove('active');
+            document.getElementById('screen-preview').classList.add('active');
+            document.getElementById('btn-back').style.display = 'block';
+        }
+
+        function showHome() { 
+            document.getElementById('screen-preview').classList.remove('active'); 
+            document.getElementById('screen-home').classList.add('active'); 
+            document.getElementById('btn-back').style.display = 'none'; 
+            document.getElementById('camera-input').value = ""; document.getElementById('gallery-input').value = ""; 
+        }
+
+        function downloadPhoto() { 
+            const link = document.createElement('a'); 
+            const modeName = currentMode === 'gps' ? 'HD_Map' : 'Note';
+            link.download = `GeoLens_${modeName}_${Date.now()}.jpg`; 
+            link.href = document.getElementById('canvas').toDataURL('image/jpeg', 1.0); 
+            link.click(); 
+        }
     </script>
 </body>
 </html>
